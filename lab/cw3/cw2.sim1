@@ -1,0 +1,45 @@
+<circuit version="1.1.0-SR1" rev="2005" stepSize="1000000" stepsPS="1000000" NLsteps="100000" reaStep="1000000" animate="0" >
+
+<item itemtype="MCU" CircId="mega32-1" mainComp="false" Show_id="true" Show_Val="false" Pos="-20,-60" rotation="0" hflip="1" vflip="1" label="mega32" idLabPos="0,-20" labelrot="0" valLabPos="-16,20" valLabRot="0" Frequency="4 MHz" Program="build_main/main.hex" Auto_Load="false" saveEepr="true" Logic_Symbol="false" Wdt_enabled="false" MainMcu="true" SerialMon="-1" />
+
+<item itemtype="Fixed Voltage" CircId="Fixed Voltage-3" mainComp="false" Show_id="true" Show_Val="false" Pos="-96,12" rotation="0" hflip="1" vflip="-1" label="RESET" idLabPos="-41.8746,13.7668" labelrot="-90" valLabPos="-16,8" valLabRot="0" Voltage="5 V" Out="false" />
+
+<item itemtype="KeyPad" CircId="KeyPad-4" mainComp="false" ShowProp="Rows" Show_id="true" Show_Val="true" Pos="148,-60" rotation="0" hflip="-1" vflip="1" label="KeyPad" idLabPos="-23.9832,-22.5786" labelrot="0" valLabPos="-19.0883,-39.1059" valLabRot="0" Rows="4" Cols="4" Key_Labels="123456789AC/+-*&#x3D" />
+
+<item itemtype="LedBar" CircId="LedBar-5" mainComp="false" Show_id="false" Show_Val="false" Pos="-12,132" rotation="90" hflip="-1" vflip="1" label="LedBar" idLabPos="-16,-44" labelrot="0" valLabPos="-16,-56" valLabRot="0" Color="Red" Size="8 _Leds" Grounded="true" Threshold="1.8 V" MaxCurrent="30 mA" Resistance="0.6 Ω" />
+
+<item itemtype="Connector" uid="Connector-1" startpinid="mega32-1-RST" endpinid="Fixed Voltage-3-outnod" pointList="-28,12,-80,12" />
+
+<item itemtype="Connector" uid="Connector-2" startpinid="mega32-1-PORTA0" endpinid="KeyPad-4-Pin0" pointList="36,-52,132,-52" />
+
+<item itemtype="Connector" uid="Connector-3" startpinid="KeyPad-4-Pin1" endpinid="mega32-1-PORTA1" pointList="132,-36,124,-36,124,-44,36,-44" />
+
+<item itemtype="Connector" uid="Connector-4" startpinid="mega32-1-PORTA2" endpinid="KeyPad-4-Pin2" pointList="36,-36,116,-36,116,-20,132,-20" />
+
+<item itemtype="Connector" uid="Connector-5" startpinid="KeyPad-4-Pin3" endpinid="mega32-1-PORTA3" pointList="132,-4,104,-4,104,-28,36,-28" />
+
+<item itemtype="Connector" uid="Connector-6" startpinid="KeyPad-4-Pin4" endpinid="mega32-1-PORTA4" pointList="148,12,92,12,92,-20,36,-20" />
+
+<item itemtype="Connector" uid="Connector-7" startpinid="mega32-1-PORTA5" endpinid="KeyPad-4-Pin5" pointList="36,-12,84,-12,84,20,164,20,164,12" />
+
+<item itemtype="Connector" uid="Connector-8" startpinid="KeyPad-4-Pin6" endpinid="mega32-1-PORTA6" pointList="180,12,180,28,76,28,76,-4,36,-4" />
+
+<item itemtype="Connector" uid="Connector-9" startpinid="mega32-1-PORTA7" endpinid="KeyPad-4-Pin7" pointList="36,4,68,4,68,36,196,36,196,12" />
+
+<item itemtype="Connector" uid="Connector-10" startpinid="LedBar-5-led0-pinP" endpinid="mega32-1-PORTD0" pointList="-36,116,-36,52,-28,52" />
+
+<item itemtype="Connector" uid="Connector-11" startpinid="mega32-1-PORTD1" endpinid="LedBar-5-led1-pinP" pointList="-28,60,-28,116" />
+
+<item itemtype="Connector" uid="Connector-12" startpinid="mega32-1-PORTD2" endpinid="LedBar-5-led2-pinP" pointList="-28,68,-28,116,-20,116" />
+
+<item itemtype="Connector" uid="Connector-13" startpinid="mega32-1-PORTD3" endpinid="LedBar-5-led3-pinP" pointList="-28,76,-28,116,-12,116" />
+
+<item itemtype="Connector" uid="Connector-14" startpinid="mega32-1-PORTD4" endpinid="LedBar-5-led4-pinP" pointList="-28,84,-28,116,-4,116" />
+
+<item itemtype="Connector" uid="Connector-15" startpinid="mega32-1-PORTD5" endpinid="LedBar-5-led5-pinP" pointList="-28,92,-28,116,4,116" />
+
+<item itemtype="Connector" uid="Connector-16" startpinid="mega32-1-PORTD6" endpinid="LedBar-5-led6-pinP" pointList="-28,100,-28,116,12,116" />
+
+<item itemtype="Connector" uid="Connector-17" startpinid="mega32-1-PORTD7" endpinid="LedBar-5-led7-pinP" pointList="36,100,36,116,20,116" />
+
+</circuit>
