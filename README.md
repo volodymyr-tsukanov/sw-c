@@ -4,7 +4,7 @@
 - Uzyskanie przez studenta wiedzy z zakresu programowania układów mikrokontrolerów w systemach wbudowanych </br>
 Informatyka Ⅰ stopień 5 semestr </br>
 
-**C**, **AVR8**, **ATMega32**, **SimulIDE**; </br></br>
+**C**, **AVR8**, **ATMega32**, **SimulIDE** </br></br>
 
 
 Shields: [![GPL-3.0][gpl3-shield]][gpl3]
