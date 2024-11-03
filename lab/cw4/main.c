@@ -22,13 +22,27 @@
 #define LCD_CMD_CLEAR 0x01
 #define LCD_CMD_RETURN_HOME 0x02
 #define LCD_CMD_ENTRY_MODE 0x04
-#define LCD_CMD_DISPLAY_ON 0x0C
-#define LCD_CMD_FUNCTION_SET 0x20
+#define LCD_CMD_DISPLAYCONTROL 0x08
+	#define LCD_DISPLAY_ON 0x04
+	#define LCD_DISPLAY_OFF 0x00
+	#define LCD_DISPLAY_CURSOR_ON 0x02
+	#define LCD_DISPLAY_CURSOR_OFF 0x00
+	#define LCD_DISPLAY_BLINK_ON 0x01
+	#define LCD_DISPLAY_BLINK_OFF 0x00
+#define LCD_CMD_FUNCTIONSET 0x20
+	#define LCD_4BMODE 0x00
+	#define LCD_8BMODE 0x10
+	#define LCD_1LINE 0x00
+	#define LCD_2LINE 0x08
+	#define LCD_5x7DOTS 0x00
+	#define LCD_5x10DOTS 0x04
 #define LCD_CMD_CONFIGURE_ENTRY_MODE (1<<2)
 	#define LCD_CMD_SET_DECREMENT_ON_ENTRY (0<<1)
 	#define LCD_CMD_SET_INCREMENT_ON_ENTRY (1<<1)
 	#define LCD_CMD_SET_SHIFT_COURSOR_ON_ENTRY (0<<0)
 	#define LCD_CMD_SET_SHIFT_WINDOW_ON_ENTRY (1<<0)
+#define LCD_ROWS 2
+#define LCD_COLS 16
 
 
 #include <avr/io.h>
@@ -48,35 +62,37 @@ volatile uint8_t* lcd_port;
 
 
 void lcd_set_instruction_transmission_mode(){	//wyczyść bit portu ustawiający rodzaj transmisji.
-	*lcd_port &= ~(1 << LCD_PIN_RS);	//RS = 0
+	asm volatile("nop");	//wait 1 cycle
+	*lcd_port &= ~LCD_PIN_RS;	//RS=0
 }
 void lcd_set_data_transmsision_mode(){	//ustaw bit portu ustawiający rodzaj transmisji.
-	*lcd_port |= (1 << LCD_PIN_RS);	//RS = 1
+	asm volatile("nop");	//wait 1 cycle
+	*lcd_port |= LCD_PIN_RS;		//RS=1
 }
 void lcd_begin_transmission(){	//ustaw odpowiedni bit portu włączając transmisję.
-	*lcd_port &= ~(1 << LCD_PIN_EN);	//EN = 0
+	asm volatile("nop");	//wait 1 cycle
+	*lcd_port |= LCD_PIN_EN;		//EN=1
 }
 void lcd_end_transmission(){	//wyczyść odpowiedni bit portu wyłączając transmisję.
-	*lcd_port |= (1 << LCD_PIN_EN);	//EN = 1
+	asm volatile("nop");	//wait 1 cycle
+	*lcd_port &= ~LCD_PIN_EN;	//EN=0
 }
 void lcd_set_port_lower_nibble(uint8_t data){	//wyczyść 4 bity portu z danymi i ustaw na wyjście niskie bity danych.
-	*lcd_port &= 0xF0;	//wyczyść
-	*lcd_port |= data << 4;	//ustaw niskie
+	*lcd_port = (*lcd_port & 0xF0) | (data & 0x0F);
 }
 void lcd_set_port_upper_nibble(uint8_t data){	//wyczyść 4 bity portu z danymi i ustaw na wyjście wysokie bity danych.
-	*lcd_port &= 0x0F;	//wyczyść
-	*lcd_port |= data & 0xF0;	//ustaw wysokie
+	*lcd_port = (*lcd_port & 0x0F) | (data & 0xF0);
 }
 
 void lcd_write_byte(uint8_t data){	//rozpocznij transmisję, prześlij najpierw wysokie bity, zakończ transmisję i powtórz dla niskich bitów. Pamiętaj o dodaniu opóźnienia.
 	lcd_begin_transmission();
 	lcd_set_port_upper_nibble(data);
 	lcd_end_transmission();
-	_delay_ms(4);
+	_delay_us(40);
 	lcd_begin_transmission();
 	lcd_set_port_lower_nibble(data);
 	lcd_end_transmission();
-	_delay_ms(4);
+	_delay_us(40);
 }
 void lcd_write_command(uint8_t command){	//ustaw odpowiedni tryb transmisji i prześlij komendę. Dzięki wcześniejszemu mapowaniu bitów instrukcji sterownika można teraz wykonać komendy w następujący sposób:
 	lcd_set_instruction_transmission_mode();
@@ -88,11 +104,14 @@ void lcd_write_character(uint8_t character){		//ustaw odpowiedni tryb transmisji
 }
 void lcd_return_home(){	//wykonaj komendę powrotu kursora na pozycję początkową.
 	lcd_write_command(LCD_CMD_RETURN_HOME);
-	_delay_ms(4);
+	_delay_ms(2);
 }
 void lcd_clear(){	//wykonaj komendę czyszczenia ekranu.
 	lcd_write_command(LCD_CMD_CLEAR);
-	_delay_ms(4);
+	_delay_ms(2);
+}
+void lcd_on(){
+	lcd_write_command(LCD_CMD_DISPLAYCONTROL | LCD_DISPLAY_ON);
 }
 void lcd_move_coursor_to(uint8_t row, uint8_t column){	//wykonaj komendę zmiany adresu komórki DDRAM (czyli adresu kursora)
 	uint8_t curs_addr = (column-1) + 0x40*(row-1);
@@ -129,23 +148,28 @@ void lcd_init(port_name_t port_name){
 	}
 
 	// Set LCD pins as output
-	*lcd_ddr |= (1 << LCD_PIN_EN) | (1 << LCD_PIN_RS);	// Enable EN and RS pins
-	*lcd_ddr |= 0xF0; // data pins are upper 4 bits
+	*lcd_ddr |= 0b11110011;
 
-	_delay_ms(25);
+	_delay_ms(15);
 
-	// Function Set
-	//lcd_write_command(LCD_CMD_FUNCTION_SET | 1);	//1, 3
-	//lcd_write_command(LCD_CMD_FUNCTION_SET | (1 << 2)); // 8b, 1ln
-	_delay_ms(4);
+	lcd_set_instruction_transmission_mode();
 
-	// Display ON
-	lcd_write_command(LCD_CMD_DISPLAY_ON);
+	lcd_set_port_upper_nibble(LCD_CMD_FUNCTIONSET | LCD_4BMODE | LCD_2LINE | LCD_5x7DOTS);
+	lcd_begin_transmission();
+	lcd_end_transmission();
+	_delay_ms(5);
 
+	lcd_write_byte(LCD_CMD_DISPLAYCONTROL | LCD_DISPLAY_OFF);
 	lcd_clear();
 
-	// Entry Mode
-	lcd_write_command(LCD_CMD_ENTRY_MODE | LCD_CMD_CONFIGURE_ENTRY_MODE | LCD_CMD_SET_INCREMENT_ON_ENTRY);
+	lcd_write_byte(LCD_CMD_CONFIGURE_ENTRY_MODE | LCD_CMD_SET_INCREMENT_ON_ENTRY | LCD_CMD_SET_SHIFT_COURSOR_ON_ENTRY);
+
+	lcd_write_byte(LCD_CMD_DISPLAYCONTROL | LCD_DISPLAY_ON);
+
+	lcd_return_home();
+	lcd_clear();
+
+	lcd_set_data_transmsision_mode();
 }
 
 
@@ -153,9 +177,13 @@ int main(void)
 {
 	port_name_t lcd_port = PORT_B;
 	uint8_t row = 1, col = 1;
+	const char msgA[] = "Volodymyr";
 
     lcd_init(lcd_port);
-	for(int i = 0; i < 256; i++){
-		lcd_write_character(i); _delay_ms(100);
-	}
+	lcd_move_coursor_to(2,1);
+	lcd_write_character(0x8A);
+	_delay_ms(2000);
+	lcd_move_coursor_to(1,1);
+	
+	while(1){}
 }
