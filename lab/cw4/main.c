@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#define F_CPU 4000000	//częstotliwość procesora dla delay
+#define F_CPU 4000000	//proc HZ for delay
 
 #define LCD_PIN_EN 0
 #define LCD_PIN_RS 1
@@ -36,20 +36,18 @@
 	#define LCD_2LINE 0x08
 	#define LCD_5x8DOTS 0x00
 	#define LCD_5x10DOTS 0x04
-#define LCD_CMD_CONFIGURE_ENTRY_MODE (1<<2)
-	#define LCD_CMD_SET_DECREMENT_ON_ENTRY (0<<1)
-	#define LCD_CMD_SET_INCREMENT_ON_ENTRY (1<<1)
-	#define LCD_CMD_SET_SHIFT_COURSOR_ON_ENTRY (0<<0)
-	#define LCD_CMD_SET_SHIFT_WINDOW_ON_ENTRY (1<<0)
-#define LCD_CDM_SET_DDRAM 0x80
+#define LCD_CMD_CONFIGURE_ENTRY_MODE 0x04
+	#define LCD_CMD_SET_DECREMENT_ON_ENTRY 0x00	//was 0<<1
+	#define LCD_CMD_SET_INCREMENT_ON_ENTRY 0x02
+	#define LCD_CMD_SET_SHIFT_COURSOR_ON_ENTRY 0x00
+	#define LCD_CMD_SET_SHIFT_WINDOW_ON_ENTRY 0x01
+#define LCD_SET_DDRAM_ADDR 0x80
 	#define LCD_DDRAM_ROW_OFFSET 0x40
 #define LCD_ROWS 2
 #define LCD_COLS 16
 
-
 #include <avr/io.h>
 #include <util/delay.h>
-#include <stdbool.h>
 
 typedef enum {
 	PORT_A,
@@ -63,69 +61,53 @@ volatile uint8_t* lcd_ddr;
 volatile uint8_t* lcd_port;
 
 
-void lcd_set_instruction_transmission_mode(){	//wyczyść bit portu ustawiający rodzaj transmisji.
-	*lcd_port &= ~(1<<LCD_PIN_RS);	//RS=0
+void lcd_set_port_lower_nibble(uint8_t data){
+	*lcd_port = (*lcd_port & 0x0F) | ((data << 4) & 0xF0);
 }
-void lcd_set_data_transmsision_mode(){	//ustaw bit portu ustawiający rodzaj transmisji.
-	*lcd_port |= (1<<LCD_PIN_RS);		//RS=1
-}
-void lcd_begin_transmission(){	//ustaw odpowiedni bit portu włączając transmisję.
-	*lcd_port |= (1<<LCD_PIN_EN);		//EN=1
-}
-void lcd_end_transmission(){	//wyczyść odpowiedni bit portu wyłączając transmisję.
-	_delay_ms(4);
-	*lcd_port &= ~(1<<LCD_PIN_EN);	//EN=0
-}
-void lcd_set_port_lower_nibble(uint8_t data){	//wyczyść 4 bity portu z danymi i ustaw na wyjście niskie bity danych.
-	*lcd_port = (*lcd_port & 0xF0) | (data & 0x0F);
-}
-void lcd_set_port_upper_nibble(uint8_t data){	//wyczyść 4 bity portu z danymi i ustaw na wyjście wysokie bity danych.
+void lcd_set_port_upper_nibble(uint8_t data){
 	*lcd_port = (*lcd_port & 0x0F) | (data & 0xF0);
 }
+void lcd_transmit(){
+	*lcd_port |= (1 << LCD_PIN_EN);   // EN = 1 to latch data
+	_delay_us(1);
+	*lcd_port &= ~(1 << LCD_PIN_EN);  // EN = 0
 
-void lcd_write_byte(uint8_t data){	//rozpocznij transmisję, prześlij najpierw wysokie bity, zakończ transmisję i powtórz dla niskich bitów. Pamiętaj o dodaniu opóźnienia.
-	lcd_begin_transmission();
+	_delay_us(200);
+}
+
+// Function to send a command to the LCD
+void lcd_command(uint8_t cmd) {
+	lcd_set_port_upper_nibble(cmd);
+	*lcd_port &= ~(1 << LCD_PIN_RS);  // RS = 0 (command)
+	lcd_transmit();
+
+	lcd_set_port_lower_nibble(cmd);
+	lcd_transmit();
+
+	_delay_ms(2);
+}
+void lcd_print(uint8_t data) {
 	lcd_set_port_upper_nibble(data);
-	lcd_end_transmission();
-	_delay_ms(1);
-	lcd_begin_transmission();
+	*lcd_port |= (1 << LCD_PIN_RS);  // RS = 1 (data)
+	lcd_transmit();
+
 	lcd_set_port_lower_nibble(data);
-	lcd_end_transmission();
-}
-void lcd_write_command(uint8_t command){	//ustaw odpowiedni tryb transmisji i prześlij komendę. Dzięki wcześniejszemu mapowaniu bitów instrukcji sterownika można teraz wykonać komendy w następujący sposób:
-	lcd_set_instruction_transmission_mode();
-	lcd_write_byte(command);
-}
-void lcd_write_character(uint8_t character){		//ustaw odpowiedni tryb transmisji i prześlij znak w postaci bajtu.
-	lcd_set_data_transmsision_mode();
-	lcd_write_byte(character);
-}
-void lcd_return_home(){	//wykonaj komendę powrotu kursora na pozycję początkową.
-	lcd_write_command(LCD_CMD_RETURN_HOME);
+	lcd_transmit();
+
 	_delay_ms(2);
-}
-void lcd_clear(){	//wykonaj komendę czyszczenia ekranu.
-	lcd_write_command(LCD_CMD_CLEAR);
-	_delay_ms(2);
-}
-void lcd_move_cursor_to(uint8_t row, uint8_t column){	//wykonaj komendę zmiany adresu komórki DDRAM (czyli adresu kursora)
-	uint8_t curs_addr = column;
-    if (row == 1) {
-        curs_addr = LCD_DDRAM_ROW_OFFSET + column; // Row 1 (0x40 is the start address for row 1 in 2x16 LCD)
-    }
-	lcd_write_command(LCD_CDM_SET_DDRAM | curs_addr);
-}
-void lcd_write_string(uint8_t* data, uint8_t length){	//wysyłaj dane dla całego łańcucha znaków.
-	for(int i = 0; i < length; i++)
-		lcd_write_character(data[i]);
-}
-void lcd_clear_charcters(uint8_t row, uint8_t start_column, uint8_t n_characters){	//przejdź kursorem do odpowiedniego miejsca i napisz n razy znak spacji.
-	lcd_move_cursor_to(row, start_column);
-	for(uint8_t i = 0; i < n_characters; i++)
-		lcd_write_character(0);
 }
 
-void lcd_init(port_name_t port_name){
+void lcd_clear() {
+	lcd_command(LCD_CMD_CLEAR);
+	_delay_ms(2);
+}
+void lcd_move_cursor(uint8_t row, uint8_t col) {
+	if(row > 1 || col > 15) return;	// 2x16 lcd
+	uint8_t address = row*LCD_DDRAM_ROW_OFFSET + col;
+	lcd_command(LCD_SET_DDRAM_ADDR | address);
+}
+
+void lcd_init(port_name_t port_name) {
 	switch (port_name){
 		case PORT_A:
 			lcd_ddr = &DDRA;
@@ -145,43 +127,42 @@ void lcd_init(port_name_t port_name){
 			break;
 	}
 
-	// Set LCD pins as output
-	*lcd_ddr = 0xFF;
-
+	*lcd_ddr = 0xFF; 	//portB as output
 	_delay_ms(20);
 
-	//lcd_begin_transmission();
-	lcd_set_port_upper_nibble(LCD_CMD_FUNCTIONSET | LCD_4BMODE);
-	//lcd_end_transmission();
-	_delay_ms(5);
+	// Initialize in 4-bit mode
+	lcd_command(LCD_CMD_RETURN_HOME);
+	lcd_command(LCD_CMD_FUNCTIONSET | LCD_2LINE | LCD_5x8DOTS);	//Function set: 2 lines, 5x8 dots
+	lcd_command(LCD_CMD_DISPLAYCONTROL | LCD_DISPLAY_ON | LCD_DISPLAY_CURSOR_OFF);	//display ON, cursor OFF
+	lcd_command(LCD_CMD_CONFIGURE_ENTRY_MODE | LCD_CMD_SET_INCREMENT_ON_ENTRY | LCD_CMD_SET_SHIFT_COURSOR_ON_ENTRY);	//Entry mode set: Increment cursor
 
-	lcd_write_command(LCD_CMD_DISPLAYCONTROL | LCD_DISPLAY_OFF);
-	lcd_clear();
-	lcd_write_command(LCD_CMD_FUNCTIONSET | LCD_4BMODE | LCD_2LINE | LCD_5x8DOTS);
-	
-	lcd_set_data_transmsision_mode();
-	lcd_write_command(LCD_CMD_CONFIGURE_ENTRY_MODE | LCD_CMD_SET_INCREMENT_ON_ENTRY | LCD_CMD_SET_SHIFT_COURSOR_ON_ENTRY);
-	
-	lcd_write_command(LCD_CMD_DISPLAYCONTROL | LCD_DISPLAY_ON | LCD_DISPLAY_CURSOR_ON | LCD_DISPLAY_BLINK_ON);
-	lcd_return_home();
 	lcd_clear();
 }
 
 
-int main(void)
-{
-	port_name_t lcd_port = PORT_B;
-	uint8_t row = 0, col = 3;
-	uint8_t* msgA = "Volodymyr";
+int main(void) {
+	port_name_t lcd_p = PORT_B;
+	lcd_init(lcd_p);
 
-    lcd_init(lcd_port);
+	char *message = "Hello World";
+	while (*message) {
+		lcd_print(*message++);
+	}
 
-	//lcd_move_cursor_to(0, 0); // Move cursor to the beginning of the first row
-    for(uint8_t i = 0; i < 255; i++){
-		lcd_write_character(i);
-		_delay_ms(30);
-	} lcd_clear();
-	lcd_move_cursor_to(0, 0);
+	lcd_move_cursor(1, 3);
 
-	while(1){}
+	char *year = "2024";
+	while (*year) {
+		lcd_print(*year++);
+	}
+	
+	_delay_ms(2000);
+	lcd_clear();
+	lcd_print('V');
+	
+	lcd_print('0');
+
+	while (1) {}
+
+	return 0;
 }
