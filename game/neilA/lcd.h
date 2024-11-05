@@ -96,6 +96,10 @@ static inline void lcd_print_string(char* string, uint8_t length){
 	}
 }
 static inline void lcd_print_decimal(uint8_t number){
+	if(number == 0){
+		lcd_print('0');
+		return;
+	}
 	uint8_t bufferRealSize = 0;
 	uint8_t* buffer = (uint8_t*) alc_array_new(3,sizeof(uint8_t));
 	while(number > 0){

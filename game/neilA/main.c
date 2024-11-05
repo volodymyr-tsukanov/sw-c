@@ -21,6 +21,7 @@
 #include "kpd.h"
 //game interfaces
 #include "lvl.h"
+#include "rnd.h"
 
 
 int main(void) {
@@ -29,15 +30,13 @@ int main(void) {
 	lcd_init(lcd_p);
 	kpd_init(kpd_p);
 	
-	lcd_print_decimal(8);
-	lcd_print(' ');
-	lcd_print_decimal(12);
-	lcd_print(' ');
-	lcd_print_decimal(129);
+	rnd_init();
 
 	while (1){
-		
-		_delay_ms(GAME_UPTDELAY);
+		lcd_print_decimal(rnd_lcg());
+		lcd_print(' ');
+
+		_delay_ms(100/*GAME_UPTDELAY*/);
 	}
 
 	return 0;

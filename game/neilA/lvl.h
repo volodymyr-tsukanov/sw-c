@@ -21,5 +21,8 @@
 #include "dft.h"
 
 
+static inline void lvl_init(){
+
+}
 
 #endif  //LEVEL_H
