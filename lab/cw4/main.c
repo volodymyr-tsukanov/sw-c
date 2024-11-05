@@ -48,6 +48,7 @@
 
 #include <avr/io.h>
 #include <util/delay.h>
+#include <stdbool.h>
 
 typedef enum {
 	PORT_A,
@@ -59,6 +60,10 @@ typedef enum {
 
 volatile uint8_t* lcd_ddr;
 volatile uint8_t* lcd_port;
+
+volatile uint8_t* kpd_ddr;
+volatile uint8_t* kpd_pin;
+volatile uint8_t* kpd_port;
 
 
 void lcd_set_port_lower_nibble(uint8_t data){
@@ -96,12 +101,17 @@ void lcd_print(uint8_t data) {
 
 	_delay_ms(2);
 }
+void lcd_print_string(char* string, uint8_t length){
+	for(uint8_t ind = 0; ind < length; ++ind){
+		lcd_print(string[ind]);
+	}
+}
 
 void lcd_clear() {
 	lcd_command(LCD_CMD_CLEAR);
 	_delay_ms(2);
 }
-void lcd_move_cursor(uint8_t row, uint8_t col) {
+void lcd_set_cursor(uint8_t row, uint8_t col) {
 	if(row > 1 || col > 15) return;	// 2x16 lcd
 	uint8_t address = row*LCD_DDRAM_ROW_OFFSET + col;
 	lcd_command(LCD_SET_DDRAM_ADDR | address);
@@ -140,29 +150,66 @@ void lcd_init(port_name_t port_name) {
 }
 
 
+void kpd_init(port_name_t port_name){
+	switch (port_name){
+		case PORT_A:
+			kpd_ddr = &DDRA;
+			kpd_pin = &PINA;
+			kpd_port = &PORTA;
+			break;
+		case PORT_B:
+			kpd_ddr = &DDRB;
+			kpd_pin = &PINB;
+			kpd_port = &PORTB;
+			break;
+		case PORT_C:
+			kpd_ddr = &DDRC;
+			kpd_pin = &PINC;
+			kpd_port = &PORTC;
+			break;
+		case PORT_D:
+			kpd_ddr = &DDRD;
+			kpd_pin = &PIND;
+			kpd_port = &PORTD;
+			break;
+	}
+	
+	*kpd_ddr = 0xF0;	//rows=in, cols=out
+	*kpd_port = 0x0F;
+}
+bool kpd_is_key_pressed(uint8_t row, uint8_t column){	//keypad indexing from 0
+	*kpd_port = ~(1<<(column+4));
+	_delay_ms(4);
+	return ((*kpd_pin & (1<<row)) == 0);
+}
+
+
 int main(void) {
-	port_name_t lcd_p = PORT_B;
+	port_name_t lcd_p = PORT_B, kpd_p = PORT_A;
+	//uint8_t lcd_cursor_row = 0, lcd_cursor_col = 0;
+	char* _name = "Volodymyr";
+	char* _surname = "Tsukanov";
+
 	lcd_init(lcd_p);
-
-	char *message = "Hello World";
-	while (*message) {
-		lcd_print(*message++);
-	}
-
-	lcd_move_cursor(1, 3);
-
-	char *year = "2024";
-	while (*year) {
-		lcd_print(*year++);
-	}
+	kpd_init(kpd_p);
 	
-	_delay_ms(2000);
-	lcd_clear();
-	lcd_print('V');
-	
-	lcd_print('0');
+	lcd_print('?');
 
-	while (1) {}
+	while (1){
+		if(kpd_is_key_pressed(0,3)){	//A
+			lcd_set_cursor(0,0);
+			lcd_print_string(_name, 9);
+			lcd_set_cursor(1,8);
+			lcd_print_string(_surname, 8);
+			_delay_ms(500);
+		}
+		if(kpd_is_key_pressed(1,3)){	//B
+			lcd_clear();
+			_delay_ms(500);
+		}
+		
+		_delay_ms(50);
+	}
 
 	return 0;
 }

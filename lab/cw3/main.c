@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#define F_CPU 4000000	//częstotliwość procesora dla delay
+#define F_CPU 4000000	//CPU freq for delay
 
 #define CLC_OPT_ADD 0b00010000	//16
 #define CLC_OPT_SUB 0b00100000	//32
@@ -26,9 +26,9 @@
 #define CLC_FDB_RST 0b01111110	//reset
 #define CLC_FDB_EXC 0b10101010	//exception
 
-
 #include <avr/io.h>
 #include <util/delay.h>
+#include <stdbool.h>
 
 typedef enum {
 	PORT_A,
@@ -36,6 +36,11 @@ typedef enum {
 	PORT_C,
 	PORT_D
 } port_name_t;
+
+
+volatile uint8_t* kpd_ddr;
+volatile uint8_t* kpd_pin;
+volatile uint8_t* kpd_port;
 
 
 void set_diodes(port_name_t port, uint8_t number){	//dla wybranego portu
@@ -59,31 +64,49 @@ void set_diodes(port_name_t port, uint8_t number){	//dla wybranego portu
 	}
 }
 
-int is_key_pressed_o(uint8_t row, uint8_t column){	//dla portA
-	PORTA = ~(1<<(column+3));
-	_delay_ms(4);
-	uint8_t x = ~PINA & 0x0F;
-	return x == row;
-}
-int is_key_pressed(uint8_t row, uint8_t column){	//dla portA
-	PORTA = ~(1<<(column+4));
-	_delay_ms(3);
-	return ((PINA & (1<<row)) == 0);
-}
-char get_key(){	//dla portA
-	DDRA = 0xF0;	//wierszy(PA0-3) na wejście, kolumny(PA4-7) na wyjście
-	PORTA = 0x0F;
-	uint8_t res = 0, k, w;
 
+void kpd_init(port_name_t port_name){
+	switch (port_name){
+		case PORT_A:
+			kpd_ddr = &DDRA;
+			kpd_pin = &PINA;
+			kpd_port = &PORTA;
+			break;
+		case PORT_B:
+			kpd_ddr = &DDRB;
+			kpd_pin = &PINB;
+			kpd_port = &PORTB;
+			break;
+		case PORT_C:
+			kpd_ddr = &DDRC;
+			kpd_pin = &PINC;
+			kpd_port = &PORTC;
+			break;
+		case PORT_D:
+			kpd_ddr = &DDRD;
+			kpd_pin = &PIND;
+			kpd_port = &PORTD;
+			break;
+	}
+	
+	*kpd_ddr = 0xF0;	//rows=in, cols=out
+	*kpd_port = 0x0F;
+}
+bool kpd_is_key_pressed(uint8_t row, uint8_t column){	//keypad indexing from 0
+	*kpd_port = ~(1<<(column+4));
+	_delay_ms(4);
+	return ((*kpd_pin & (1<<row)) == 0);
+}
+char kpd_get_key(){
+	uint8_t res = 0, k, w;
 	for(k = 0; k < 4; k++){
 		for(w = 0; w < 4; w++){
-			if(is_key_pressed(w,k)){
+			if(kpd_is_key_pressed(w,k)){
 				if(res == 0) res = 4*w + (k+1);
 				else return 0xFF;
 			}
 		}
 	}
-
 	return res;
 }
 
@@ -145,7 +168,7 @@ void calculus_operate(port_name_t diod_port, uint8_t* buffer, uint8_t* option, u
 	}
 }
 void calculus(port_name_t diod_port, uint8_t* buffer, uint8_t* option, uint8_t* memory){
-	char key = get_key();
+	char key = kpd_get_key();
 
 	if(key != 0){
 		switch(key){
@@ -191,13 +214,12 @@ void calculus(port_name_t diod_port, uint8_t* buffer, uint8_t* option, uint8_t* 
 
 int main(void)
 {
-	port_name_t diod_port = PORT_D;
-
-	DDRA = 0xF0;	//wierszy(PA0-3) na wejście, kolumny(PA4-7) na wyjście
-	PORTA = 0x0F;
+	port_name_t diod_p = PORT_D, kpd_p = PORT_A;
 	uint8_t calc_buf = 0, calc_opt = 0, calc_mem = 0;
+	
+	kpd_init(kpd_p);
 
 	while(1){
-		calculus(diod_port, &calc_buf, &calc_opt, &calc_mem);
+		calculus(diod_p, &calc_buf, &calc_opt, &calc_mem);
 	}
 }
