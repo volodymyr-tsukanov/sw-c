@@ -48,6 +48,7 @@
 #define LCD_COLS 16
 
 #include "dft.h"
+#include "alc.h"
 
 
 volatile uint8_t* lcd_ddr;
@@ -93,6 +94,17 @@ static inline void lcd_print_string(char* string, uint8_t length){
 	for(uint8_t ind = 0; ind < length; ++ind){
 		lcd_print(string[ind]);
 	}
+}
+static inline void lcd_print_decimal(uint8_t number){
+	uint8_t bufferRealSize = 0;
+	uint8_t* buffer = (uint8_t*) alc_array_new(3,sizeof(uint8_t));
+	while(number > 0){
+		buffer[3-(++bufferRealSize)] = number%10;
+		number /= 10;
+	}
+	for(uint8_t ind = 3-bufferRealSize; ind < 3; ind++)
+		lcd_print('0'+buffer[ind]);
+	alc_array_delete(buffer);
 }
 
 static inline void lcd_clear() {

@@ -21,6 +21,13 @@
 #define F_CPU 4000000	//CPU freq(HZ) for delay
 
 #define GAME_UPTDELAY 50	//update delay in ms
+//KeyPad inputs
+#define GAME_INPUT_A 1
+#define GAME_INPUT_UP 2
+#define GAME_INPUT_B 3
+#define GAME_INPUT_X 5
+#define GAME_INPUT_DOWN 8
+
 
 #include <avr/io.h>
 #include <util/delay.h>

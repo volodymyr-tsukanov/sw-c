@@ -18,8 +18,8 @@
 #ifndef KEYPAD_H
 #define KEYPAD_H
 
-#define KPD_ROWS 4
-#define KPD_COLS 4
+#define KPD_ROWS 3
+#define KPD_COLS 3
 
 #include "alc.h"
 
@@ -33,6 +33,9 @@ static inline bool kpd_is_key_pressed(uint8_t row, uint8_t column){	//keypad ind
 	*kpd_port = ~(1<<(column+4));
 	_delay_ms(4);
 	return ((*kpd_pin & (1<<row)) == 0);
+}
+static inline bool kpd_is_key_pressed_indexed(uint8_t index){
+	return kpd_is_key_pressed((index-1)/KPD_COLS, (index-1)%KPD_COLS);
 }
 
 static inline char kpd_get_key(){

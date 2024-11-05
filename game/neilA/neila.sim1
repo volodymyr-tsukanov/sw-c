@@ -4,27 +4,11 @@
 
 <item itemtype="Fixed Voltage" CircId="Fixed Voltage-7" mainComp="false" Show_id="true" Show_Val="false" Pos="-124,-40" rotation="90" hflip="1" vflip="-1" label="RESET" idLabPos="-41.8746,13.7668" labelrot="-90" valLabPos="-16,8" valLabRot="0" Voltage="5 V" Out="true" />
 
-<item itemtype="KeyPad" CircId="KeyPad-92" mainComp="false" Show_id="true" Show_Val="false" Pos="76,-132" rotation="0" hflip="-1" vflip="1" label="Keypad" idLabPos="-23.9832,-22.5786" labelrot="0" valLabPos="-19.0883,-39.1059" valLabRot="0" Rows="4" Cols="4" Key_Labels="123A456B789C*0#D" />
+<item itemtype="KeyPad" CircId="KeyPad-92" mainComp="false" Show_id="true" Show_Val="false" Pos="64,-132" rotation="0" hflip="-1" vflip="1" label="GamePad" idLabPos="-23.9832,-22.5786" labelrot="0" valLabPos="-19.0883,-39.1059" valLabRot="0" Rows="3" Cols="3" Key_Labels="A^B&#x3CX&#x3ECV8D" />
 
-<item itemtype="Hd44780" CircId="Hd44780-100" mainComp="false" ShowProp="Cols" Show_id="true" Show_Val="true" Pos="-236,-156" rotation="0" hflip="1" vflip="1" label="Hd44780" idLabPos="70,-82" labelrot="0" valLabPos="189.715,-62.6604" valLabRot="0" Rows="2" Cols="16" />
+<item itemtype="Hd44780" CircId="Hd44780-100" mainComp="false" ShowProp="Cols" Show_id="true" Show_Val="true" Pos="-236,-156" rotation="0" hflip="1" vflip="1" label="Display" idLabPos="70,-82" labelrot="0" valLabPos="189.715,-62.6604" valLabRot="0" Rows="2" Cols="16" />
 
 <item itemtype="Ground" CircId="Ground-101" mainComp="false" Show_id="false" Show_Val="false" Pos="-212,-84" rotation="0" hflip="1" vflip="1" label="Ground-101" idLabPos="-16,8" labelrot="0" valLabPos="-16,20" valLabRot="0" />
-
-<item itemtype="Connector" uid="Connector-294" startpinid="KeyPad-92-Pin0" endpinid="mega32-1-PORTA0" pointList="60,-124,-12,-124" />
-
-<item itemtype="Connector" uid="Connector-295" startpinid="KeyPad-92-Pin1" endpinid="mega32-1-PORTA1" pointList="60,-108,52,-108,52,-116,-12,-116" />
-
-<item itemtype="Connector" uid="Connector-296" startpinid="KeyPad-92-Pin2" endpinid="mega32-1-PORTA2" pointList="60,-92,44,-92,44,-108,-12,-108" />
-
-<item itemtype="Connector" uid="Connector-299" startpinid="KeyPad-92-Pin5" endpinid="mega32-1-PORTA5" pointList="92,-60,92,-44,20,-44,20,-84,-12,-84" />
-
-<item itemtype="Connector" uid="Connector-301" startpinid="KeyPad-92-Pin7" endpinid="mega32-1-PORTA7" pointList="124,-60,124,-28,4,-28,4,-68,-12,-68" />
-
-<item itemtype="Connector" uid="Connector-298" startpinid="KeyPad-92-Pin4" endpinid="mega32-1-PORTA4" pointList="76,-60,76,-52,28,-52,28,-92,-12,-92" />
-
-<item itemtype="Connector" uid="Connector-324" startpinid="KeyPad-92-Pin6" endpinid="mega32-1-PORTA6" pointList="108,-60,108,-36,12,-36,12,-76,-12,-76" />
-
-<item itemtype="Connector" uid="Connector-297" startpinid="KeyPad-92-Pin3" endpinid="mega32-1-PORTA3" pointList="60,-76,36,-76,36,-100,-12,-100" />
 
 <item itemtype="Connector" uid="Connector-358" startpinid="mega32-1-RST" endpinid="Fixed Voltage-7-outnod" pointList="-76,-60,-124,-60,-124,-56" />
 
@@ -41,5 +25,17 @@
 <item itemtype="Connector" uid="Connector-365" startpinid="Hd44780-100-PinRW" endpinid="Ground-101-Gnd" pointList="-212,-148,-212,-100" />
 
 <item itemtype="Connector" uid="Connector-359" startpinid="Hd44780-100-PinEn" endpinid="mega32-1-PORTB0" pointList="-204,-148,-204,-124,-76,-124" />
+
+<item itemtype="Connector" uid="Connector-366" startpinid="KeyPad-92-Pin0" endpinid="mega32-1-PORTA0" pointList="48,-124,-12,-124" />
+
+<item itemtype="Connector" uid="Connector-368" startpinid="mega32-1-PORTA1" endpinid="KeyPad-92-Pin1" pointList="-12,-116,48,-116,48,-108" />
+
+<item itemtype="Connector" uid="Connector-369" startpinid="mega32-1-PORTA2" endpinid="KeyPad-92-Pin2" pointList="-12,-108,40,-108,40,-92,48,-92" />
+
+<item itemtype="Connector" uid="Connector-370" startpinid="mega32-1-PORTA4" endpinid="KeyPad-92-Pin3" pointList="-12,-92,28,-92,28,-76,64,-76" />
+
+<item itemtype="Connector" uid="Connector-371" startpinid="KeyPad-92-Pin4" endpinid="mega32-1-PORTA5" pointList="80,-76,80,-68,20,-68,20,-84,-12,-84" />
+
+<item itemtype="Connector" uid="Connector-372" startpinid="KeyPad-92-Pin5" endpinid="mega32-1-PORTA6" pointList="96,-76,96,-60,12,-60,12,-76,-12,-76" />
 
 </circuit>

@@ -18,6 +18,8 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
+#include "dft.h"
+
 
 
 #endif  //LEVEL_H

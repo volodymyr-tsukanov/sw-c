@@ -29,7 +29,11 @@ int main(void) {
 	lcd_init(lcd_p);
 	kpd_init(kpd_p);
 	
-	lcd_print('?');
+	lcd_print_decimal(8);
+	lcd_print(' ');
+	lcd_print_decimal(12);
+	lcd_print(' ');
+	lcd_print_decimal(129);
 
 	while (1){
 		
