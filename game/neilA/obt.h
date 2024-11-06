@@ -19,6 +19,7 @@
 #define OBSTACLES_H
 
 #define OBT_SPEED_MAX 4
+#define OBT_POOL_INCREMENT_STEP 31	//tied to lvl_score
 #define OBT_ANIM_STATE_MAX 7
 #define OBT_ANIM_COUNTER_STEP 13	//less = faster obstacles
 
@@ -46,6 +47,18 @@ static inline uint8_t obt_anim_get(uint8_t state){
 	return states[state];
 }
 
+static inline void obt_create_new(){
+	if(obt_count < GAME_OBSTACLES_MAX){
+		obt_pool[obt_count].speed = rnd_range(0, OBT_SPEED_MAX);
+		obt_pool[obt_count].anim_state = rnd_range(0,OBT_ANIM_STATE_MAX);
+		obt_pool[obt_count].anim_counter = 0;
+		obt_pool[obt_count].pos = rnd_range(GAME_OBSTACLES_STARTPOINT, GAME_OBSTACLES_ENDPOINT);
+		if(rnd_lcg() > 127)	//50% chance
+			obt_pool[obt_count].pos += LCD_DDRAM_ROW_OFFSET;
+		
+		++obt_count;
+	}
+}
 static inline void obt_recreate(uint8_t index){	//replaces old obstacle with new one in the pool
 	obt_pool[index].speed = rnd_range(0, OBT_SPEED_MAX);
 	obt_pool[index].anim_state = rnd_range(0,OBT_ANIM_STATE_MAX);
@@ -53,6 +66,10 @@ static inline void obt_recreate(uint8_t index){	//replaces old obstacle with new
 	obt_pool[index].pos = rnd_range(GAME_OBSTACLES_STARTPOINT, GAME_OBSTACLES_ENDPOINT);
 	if(rnd_lcg() > 127)	//50% chance
 		obt_pool[index].pos += LCD_DDRAM_ROW_OFFSET;
+
+	//CHECK
+	/*if(lvl_get_score()%OBT_POOL_INCREMENT_STEP == 0)
+		obt_create_new();*/
 }
 
 static inline void obt_refresh(uint8_t index){	//update for pool element
@@ -63,18 +80,19 @@ static inline void obt_refresh(uint8_t index){	//update for pool element
 			lcd_set_cursor_direct(obt_pool[index].pos+1);
 			lcd_print(' ');	//hides current obstacle
 			obt_recreate(index);
-		} else {
-			lcd_set_cursor_direct(obt_pool[index].pos);
-			lcd_print(obt_anim_get(obt_pool[index].anim_state));
-			lcd_print(' ');	//clears previous pos
+		} else if(obt_pool[index].pos == plr_pos){
+			lvl_report_kill_player();
+		} else{
+			if(lvl_is_visible(obt_pool[index].pos)){	//occlusion culling
+				lcd_set_cursor_direct(obt_pool[index].pos);
+				lcd_print(obt_anim_get(obt_pool[index].anim_state));
+				lcd_print(' ');	//clears previous pos
+			}
 
 			obt_pool[index].pos -= 1;
 			obt_pool[index].anim_state += 1;
 			if(obt_pool[index].anim_state >= OBT_ANIM_STATE_MAX)
 				obt_pool[index].anim_state = 0;
-			
-			if(obt_pool[index].pos == plr_pos)
-				lvl_report_kill_player();
 		}
 	}
 	obt_pool[index].anim_counter += 1;

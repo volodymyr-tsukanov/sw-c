@@ -22,7 +22,7 @@
 #define LVL_STATUS_PAUSE 1
 #define LVL_STATUS_LOOSE 13
 
-#define LVL_SCORE_SPEED 61	//more = slower ; needs to be first
+#define LVL_SCORE_SPEED 77	//more = slower ; needs to be first
 
 
 #include "dft.h"
@@ -36,16 +36,28 @@ uint8_t lvl_score_counter;
 uint8_t lvl_status;
 
 
+static inline uint8_t lvl_get_score(){
+	return lvl_score;
+}
 static inline uint8_t lvl_get_difficulty_multiplier(){	//from 1 to 4
 	uint8_t difficulty = lvl_score / 64;
 	if(difficulty == 0) difficulty = 1;
 	return difficulty;
 }
 
+static inline bool lvl_is_visible(uint8_t pos){
+	if(pos > LCD_DDRAM_ROW_OFFSET){	//row 2
+		pos -= LCD_DDRAM_ROW_OFFSET;
+	}
+	return pos <= 16;
+}
+
 static inline void lvl_report_kill_player(){
 	lvl_status = LVL_STATUS_LOOSE;
 	lcd_set_cursor(0,5);
-	lcd_print_string("you LOOSED",10);
+	lcd_print_string("SCORE: ",7);
+	lcd_print_decimal(lvl_score);
+	lcd_print(' ');
 	lcd_set_cursor(1,2);
 	lcd_print_string("X to restart",12);
 }
@@ -83,7 +95,7 @@ static inline void lvl_update(){
 		obt_update();
 
 		//POST-UPDATE
-		if(lvl_score_counter%LVL_SCORE_SPEED){
+		if(lvl_score_counter%LVL_SCORE_SPEED == 0){
 			++lvl_score;
 		}
 		++lvl_score_counter;

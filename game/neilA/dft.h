@@ -28,10 +28,10 @@
 #define GAME_INPUT_X 5
 #define GAME_INPUT_DOWN 8
 #define GAME_PLAYER_STARTPOINT 0x02
-#define GAME_OBSTACLES_MIN 2
+#define GAME_OBSTACLES_MIN 5
 #define GAME_OBSTACLES_MAX 14
 #define GAME_OBSTACLES_STARTPOINT 0x0F	//15
-#define GAME_OBSTACLES_ENDPOINT 0x22	//34
+#define GAME_OBSTACLES_ENDPOINT 0x2A	//42
 
 #include <avr/io.h>
 #include <util/delay.h>

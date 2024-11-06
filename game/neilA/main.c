@@ -34,7 +34,7 @@ int main(void) {
 	lcd_init(lcd_p);
 	kpd_init(kpd_p);
 	  // Lib init
-	//rnd_init();
+	rnd_init();
 	  // Game init
 	lvl_init();
 	lvl_start();
