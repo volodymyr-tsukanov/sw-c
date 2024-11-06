@@ -4,7 +4,7 @@
 
 <item itemtype="Fixed Voltage" CircId="Fixed Voltage-7" mainComp="false" Show_id="true" Show_Val="false" Pos="-124,-40" rotation="90" hflip="1" vflip="-1" label="RESET" idLabPos="-41.8746,13.7668" labelrot="-90" valLabPos="-16,8" valLabRot="0" Voltage="5 V" Out="true" />
 
-<item itemtype="KeyPad" CircId="KeyPad-92" mainComp="false" Show_id="true" Show_Val="false" Pos="64,-132" rotation="0" hflip="-1" vflip="1" label="GamePad" idLabPos="-23.9832,-22.5786" labelrot="0" valLabPos="-19.0883,-39.1059" valLabRot="0" Rows="3" Cols="3" Key_Labels="A^B&#x3CX&#x3ECV8D" />
+<item itemtype="KeyPad" CircId="KeyPad-92" mainComp="false" Show_id="true" Show_Val="false" Pos="64,-132" rotation="0" hflip="-1" vflip="1" label="GamePad" idLabPos="-23.9832,-22.5786" labelrot="0" valLabPos="-19.0883,-39.1059" valLabRot="0" Rows="3" Cols="3" Key_Labels="A^B&#x3CX&#x3ECVD" />
 
 <item itemtype="Hd44780" CircId="Hd44780-100" mainComp="false" ShowProp="Cols" Show_id="true" Show_Val="true" Pos="-236,-156" rotation="0" hflip="1" vflip="1" label="Display" idLabPos="70,-82" labelrot="0" valLabPos="189.715,-62.6604" valLabRot="0" Rows="2" Cols="16" />
 

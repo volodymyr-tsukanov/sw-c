@@ -24,7 +24,6 @@
 #define RND_INPUT_DELAY 380 //in ms
 
 #include "dft.h"
-#include "alc.h"
 #include "kpd.h"
 #include "lcd.h"
 
@@ -33,76 +32,80 @@ uint32_t rnd_seed;
 
 
 static inline void rnd_reseed(){
-    const uint32_t a = 11679053;
-    const uint32_t c = 1528009391;
-    rnd_seed = a * rnd_seed + c;
+	const uint32_t a = 11679053;
+	const uint32_t c = 1528009391;
+	rnd_seed = a * rnd_seed + c;
 }
 static inline uint8_t rnd_lcg(){
-    rnd_reseed();
-    return rnd_seed;
+	rnd_reseed();
+	return rnd_seed;
 }
 static inline uint16_t rnd_lcg_16(){
-    rnd_reseed();
-    return rnd_seed;
+	rnd_reseed();
+	return rnd_seed;
 }
 static inline uint32_t rnd_lcg_32(){
-    rnd_reseed();
-    return rnd_seed;
+	rnd_reseed();
+	return rnd_seed;
 }
 
 static inline uint8_t rnd_adc(){
-    return 0;
+	return 0;
+}
+
+static inline uint8_t rnd_range(uint8_t _from, uint8_t _to){
+	return _from + (rnd_lcg()%_to);
 }
 
 
 static inline void rnd_init(){  //uses GAME_INPUTs (UP,DOWN,X)
-    uint8_t i = 0, status = 0;
-    uint16_t buffer = 0;
+	uint8_t i = 0, status = 0;
+	uint16_t buffer = 0;
 
-    lcd_clear();
-    lcd_print_string("|=-Game setup-=|", 16);
-    lcd_set_cursor(1,0);
+	lcd_clear();
+	lcd_print_string("|=-Game setup-=|", 16);
+	lcd_set_cursor(1,0);
 
-    rnd_seed = 0;
-    while(i < RND_INPUT_MAX){
-        if(kpd_is_key_pressed_indexed(GAME_INPUT_UP)){
-            rnd_seed += buffer;
-            buffer = 0;
-            ++status;
-            ++i;
-            lcd_print('+');
-            _delay_ms(RND_INPUT_DELAY);
-        } else if(kpd_is_key_pressed_indexed(GAME_INPUT_X)){
-            rnd_seed += buffer*4;
-            buffer = 0;
-            status = 9;
-            ++i;
-            lcd_print('*');
+	rnd_seed = 0;
+	while(i < RND_INPUT_MAX){
+		if(kpd_is_key_pressed_indexed(GAME_INPUT_UP)){
+			rnd_seed += buffer;
+			buffer = 0;
+			++status;
+			++i;
+			lcd_print('+');
+			_delay_ms(RND_INPUT_DELAY);
+		} else if(kpd_is_key_pressed_indexed(GAME_INPUT_X)){
+			rnd_seed += buffer*4;
+			buffer = 0;
+			status = 9;
+			++i;
+			lcd_print('*');
 
-            if(i >= RND_INPUT_MIN) break;
+			if(i >= RND_INPUT_MIN) break;
 
-            _delay_ms(RND_INPUT_DELAY);
-        } else if(kpd_is_key_pressed_indexed(GAME_INPUT_DOWN)){
-            rnd_seed -= buffer;
-            buffer = 0;
-            status = 0;
-            ++i;
-            lcd_print('-');
-            _delay_ms(RND_INPUT_DELAY);
-        } else {
-            switch(status){
-                case 0:
-                    ++buffer;
-                break;
-                default:
-                    buffer += status * i;
-                break;
-            }
-        }
+			_delay_ms(RND_INPUT_DELAY);
+		} else if(kpd_is_key_pressed_indexed(GAME_INPUT_DOWN)){
+			rnd_seed -= buffer;
+			buffer = 0;
+			status = 0;
+			++i;
+			lcd_print('-');
+			_delay_ms(RND_INPUT_DELAY);
+		} else {
+			switch(status){
+				case 0:
+					++buffer;
+				break;
+				default:
+					buffer += status * i;
+				break;
+			}
+		}
 
-        _delay_ms(RND_STEP);
-    }
-    lcd_clear();
+		_delay_ms(RND_STEP);
+	}
+	lcd_clear();
 }
 
 #endif  //RANDOM_H

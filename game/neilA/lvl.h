@@ -18,11 +18,63 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
+#define LVL_STATUS_RUN 0
+#define LVL_STATUS_PAUSE 1
+#define LVL_STATUS_LOOSE 13
+
 #include "dft.h"
+#include "alc.h"
+#include "lcd.h"
 
 
+uint8_t lvl_score;
+uint8_t lvl_status;
+uint8_t* lvl_map;
+
+
+static inline uint8_t lvl_get_difficulty_multiplier(){	//from 1 to 4
+	uint8_t difficulty = lvl_score / 64;
+	if(difficulty == 0) difficulty = 1;
+	return difficulty;
+}
+
+static inline void lvl_report_kill_player(){
+	lvl_status = LVL_STATUS_LOOSE;
+}
+
+
+//components
+#include "plr.h"
+#include "obt.h"
+// Game defaults
 static inline void lvl_init(){
+	lvl_map = alc_array_new(GAME_MAP_SIZE,sizeof(uint8_t));
 
+	//INIT components
+	plr_init();
+	obt_init();
+}
+
+static inline void lvl_start(){
+	lvl_score = 1;
+	lvl_status = LVL_STATUS_RUN;
+}
+
+static inline void lvl_update(){
+	switch (lvl_status)
+	{
+	case LVL_STATUS_RUN:
+		//UPDATE components
+		plr_update();
+		obt_update();
+		break;
+	default:
+		break;
+	}
+}
+
+static inline void lvl_destroy(){
+	lvl_map = alc_array_delete(lvl_map);
 }
 
 #endif  //LEVEL_H

@@ -19,24 +19,29 @@
 //hardware adapters
 #include "lcd.h"
 #include "kpd.h"
+//libs
+#include "alc.h"
+#include "rnd.h"
 //game interfaces
 #include "lvl.h"
-#include "rnd.h"
 
 
 int main(void) {
 	port_name_t lcd_p = PORT_B, kpd_p = PORT_A;
 	
+	// INIT
+	  // Hardware init
 	lcd_init(lcd_p);
 	kpd_init(kpd_p);
-	
-	rnd_init();
+	  // Lib init
+	//rnd_init();
+	  // Game init
+	lvl_init();
+	lvl_start();
 
 	while (1){
-		lcd_print_decimal(rnd_lcg());
-		lcd_print(' ');
-
-		_delay_ms(100/*GAME_UPTDELAY*/);
+		lvl_update();
+		_delay_ms(GAME_UPTDELAY);
 	}
 
 	return 0;

@@ -101,12 +101,27 @@ static inline void lcd_print_decimal(uint8_t number){
 		return;
 	}
 	uint8_t bufferRealSize = 0;
-	uint8_t* buffer = (uint8_t*) alc_array_new(3,sizeof(uint8_t));
+	uint8_t* buffer = (uint8_t*) alc_array_tmp(3,sizeof(uint8_t));
 	while(number > 0){
 		buffer[3-(++bufferRealSize)] = number%10;
 		number /= 10;
 	}
 	for(uint8_t ind = 3-bufferRealSize; ind < 3; ind++)
+		lcd_print('0'+buffer[ind]);
+	alc_array_delete(buffer);
+}
+static inline void lcd_print_decimal_32(uint32_t number){
+	if(number == 0){
+		lcd_print('0');
+		return;
+	}
+	uint8_t bufferRealSize = 0;
+	uint8_t* buffer = (uint8_t*) alc_array_tmp(10,sizeof(uint8_t));
+	while(number > 0){
+		buffer[10-(++bufferRealSize)] = number%10;
+		number /= 10;
+	}
+	for(uint8_t ind = 10-bufferRealSize; ind < 3; ind++)
 		lcd_print('0'+buffer[ind]);
 	alc_array_delete(buffer);
 }
@@ -119,10 +134,13 @@ static inline void lcd_clear() {
 static inline uint8_t lcd_get_cursor(){
 	return lcd_cursor_pos;
 }
+static inline void lcd_set_cursor_direct(uint8_t curs) {
+	lcd_cursor_pos = curs;
+	lcd_command(LCD_SET_DDRAM_ADDR | lcd_cursor_pos);
+}
 static inline void lcd_set_cursor(uint8_t row, uint8_t col) {
 	if(row >= LCD_ROWS || col >= LCD_COLS) return;	// 2x16 lcd
-	lcd_cursor_pos = row*LCD_DDRAM_ROW_OFFSET + col;
-	lcd_command(LCD_SET_DDRAM_ADDR | lcd_cursor_pos);
+	lcd_set_cursor_direct(row*LCD_DDRAM_ROW_OFFSET + col);
 }
 
 static inline void lcd_init(port_name_t port_name) {

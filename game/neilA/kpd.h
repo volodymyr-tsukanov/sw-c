@@ -50,10 +50,8 @@ static inline char kpd_get_key(){
 	}
 	return res;
 }
-static inline uint8_t kpd_get_keys(char* Okeys){	//returns count of pressed keys, alters $1 with key indexes
+static inline uint8_t kpd_get_keys(uint8_t* Okeys){	//returns count of pressed keys, alters $1 with key indexes
 	uint8_t count = 0, c, r;
-	alc_array_delete(Okeys);
-	Okeys = (char*) alc_array_new(KPD_ROWS*KPD_COLS,sizeof(char)) ;
 	for(c = 0; c < 4; c++){
 		for(r = 0; r < 4; r++){
 			if(kpd_is_key_pressed(r,c)){
