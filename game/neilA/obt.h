@@ -19,7 +19,7 @@
 #define OBSTACLES_H
 
 #define OBT_ANIM_STATE_MAX 7
-#define OBT_ANIM_COUNTER_STEP 13
+#define OBT_ANIM_COUNTER_STEP 13	//less = faster obstacles
 
 #include "dft.h"
 #include "alc.h"
@@ -50,16 +50,13 @@ static inline void obt_recreate(uint8_t index){	//replaces old obstacle with new
 	obt_pool[index].pos = rnd_range(GAME_OBSTACLES_STARTPOINT, GAME_OBSTACLES_ENDPOINT);
 	if(rnd_lcg() > 127)	//50% chance
 		obt_pool[index].pos += LCD_DDRAM_ROW_OFFSET;
-	lcd_set_cursor(1,0);
-	lcd_print('-');
-	lcd_print_decimal(obt_pool[index].pos);
 }
 
 static inline void obt_refresh(uint8_t index){	//update for pool element
 	if(obt_pool[index].anim_counter%OBT_ANIM_COUNTER_STEP == 0){
 		if(obt_pool[index].pos == 0){
 			lcd_set_cursor_direct(obt_pool[index].pos+1);
-			lcd_print(' ');
+			lcd_print(' ');	//hides current obstacle
 			obt_recreate(index);
 		} else {
 			lcd_set_cursor_direct(obt_pool[index].pos);
@@ -82,12 +79,15 @@ static inline void obt_refresh(uint8_t index){	//update for pool element
 // Game defaults
 static inline void obt_init(){
 	uint8_t i = 0;
-	obt_count = (rnd_lcg()%GAME_OBSTACLES_MIN) * lvl_get_difficulty_multiplier();
+	obt_count = GAME_OBSTACLES_MIN;
 	obt_pool = (obt_t*) alc_array_tmp(GAME_OBSTACLES_MAX,sizeof(obt_t));
 
 	for(i = 0; i < obt_count; i++){
 		obt_recreate(i);
 	}
+}
+static inline void obt_destroy(){
+	obt_pool = alc_array_delete(obt_pool);
 }
 
 static inline void obt_update(){
@@ -96,6 +96,5 @@ static inline void obt_update(){
 		obt_refresh(i);
 	}
 }
-
 
 #endif  //OBSTACLES_H

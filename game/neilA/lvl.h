@@ -22,12 +22,17 @@
 #define LVL_STATUS_PAUSE 1
 #define LVL_STATUS_LOOSE 13
 
+#define LVL_SCORE_SPEED 83	//more = slower ; needs to be first
+
+
 #include "dft.h"
 #include "alc.h"
 #include "lcd.h"
+#include "kpd.h"
 
 
 uint8_t lvl_score;
+uint8_t lvl_score_counter;
 uint8_t lvl_status;
 uint8_t* lvl_map;
 
@@ -40,13 +45,15 @@ static inline uint8_t lvl_get_difficulty_multiplier(){	//from 1 to 4
 
 static inline void lvl_report_kill_player(){
 	lvl_status = LVL_STATUS_LOOSE;
+	lcd_set_cursor(0,5);
+	lcd_print_string("you LOOSED",10);
+	lcd_set_cursor(1,2);
+	lcd_print_string("X to restart",12);
 }
 
-
-//components
+// Game defaults
 #include "plr.h"
 #include "obt.h"
-// Game defaults
 static inline void lvl_init(){
 	lvl_map = alc_array_new(GAME_MAP_SIZE,sizeof(uint8_t));
 
@@ -54,27 +61,51 @@ static inline void lvl_init(){
 	plr_init();
 	obt_init();
 }
+static inline void lvl_destroy(){
+	lvl_map = alc_array_delete(lvl_map);
+
+	//DESTROY components
+	obt_destroy();
+}
 
 static inline void lvl_start(){
 	lvl_score = 1;
+	lvl_score_counter = 0;
 	lvl_status = LVL_STATUS_RUN;
 }
 
 static inline void lvl_update(){
-	switch (lvl_status)
-	{
+	switch (lvl_status){
 	case LVL_STATUS_RUN:
+		//CHECK input
+		if(kpd_is_key_pressed_indexed(GAME_INPUT_UP))
+			plr_action_up();
+		else if(kpd_is_key_pressed_indexed(GAME_INPUT_DOWN))
+			plr_action_down();
+
 		//UPDATE components
 		plr_update();
 		obt_update();
+
+		//POST-UPDATE
+		if(lvl_score_counter%LVL_SCORE_SPEED){
+			++lvl_score;
+		}
+		++lvl_score_counter;
+		break;
+	case LVL_STATUS_LOOSE:
+		//CHECK input
+		if(kpd_is_key_pressed_indexed(GAME_INPUT_X)){
+			lvl_destroy();
+			_delay_ms(100);
+			lcd_clear();
+			lvl_init();
+			lvl_start();
+		}
 		break;
 	default:
 		break;
 	}
-}
-
-static inline void lvl_destroy(){
-	lvl_map = alc_array_delete(lvl_map);
 }
 
 #endif  //LEVEL_H
