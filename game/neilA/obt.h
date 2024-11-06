@@ -18,6 +18,7 @@
 #ifndef OBSTACLES_H
 #define OBSTACLES_H
 
+#define OBT_SPEED_MAX 4
 #define OBT_ANIM_STATE_MAX 7
 #define OBT_ANIM_COUNTER_STEP 13	//less = faster obstacles
 
@@ -30,6 +31,7 @@
 
 typedef struct {
 	uint8_t pos;
+	uint8_t speed;
 	uint8_t anim_state;
 	uint8_t anim_counter;
 } obt_t;
@@ -45,7 +47,8 @@ static inline uint8_t obt_anim_get(uint8_t state){
 }
 
 static inline void obt_recreate(uint8_t index){	//replaces old obstacle with new one in the pool
-	obt_pool[index].anim_state = rnd_lcg()%OBT_ANIM_STATE_MAX;
+	obt_pool[index].speed = rnd_range(0, OBT_SPEED_MAX);
+	obt_pool[index].anim_state = rnd_range(0,OBT_ANIM_STATE_MAX);
 	obt_pool[index].anim_counter = 0;
 	obt_pool[index].pos = rnd_range(GAME_OBSTACLES_STARTPOINT, GAME_OBSTACLES_ENDPOINT);
 	if(rnd_lcg() > 127)	//50% chance
@@ -53,8 +56,10 @@ static inline void obt_recreate(uint8_t index){	//replaces old obstacle with new
 }
 
 static inline void obt_refresh(uint8_t index){	//update for pool element
-	if(obt_pool[index].anim_counter%OBT_ANIM_COUNTER_STEP == 0){
-		if(obt_pool[index].pos == 0){
+	uint8_t speed_step = OBT_ANIM_COUNTER_STEP - obt_pool[index].speed - lvl_get_difficulty_multiplier();
+
+	if(obt_pool[index].anim_counter%speed_step == 0){
+		if(obt_pool[index].pos == 0 || obt_pool[index].pos == LCD_DDRAM_ROW_OFFSET){
 			lcd_set_cursor_direct(obt_pool[index].pos+1);
 			lcd_print(' ');	//hides current obstacle
 			obt_recreate(index);

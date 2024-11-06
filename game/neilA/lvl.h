@@ -22,7 +22,7 @@
 #define LVL_STATUS_PAUSE 1
 #define LVL_STATUS_LOOSE 13
 
-#define LVL_SCORE_SPEED 83	//more = slower ; needs to be first
+#define LVL_SCORE_SPEED 61	//more = slower ; needs to be first
 
 
 #include "dft.h"
@@ -34,7 +34,6 @@
 uint8_t lvl_score;
 uint8_t lvl_score_counter;
 uint8_t lvl_status;
-uint8_t* lvl_map;
 
 
 static inline uint8_t lvl_get_difficulty_multiplier(){	//from 1 to 4
@@ -55,15 +54,11 @@ static inline void lvl_report_kill_player(){
 #include "plr.h"
 #include "obt.h"
 static inline void lvl_init(){
-	lvl_map = alc_array_new(GAME_MAP_SIZE,sizeof(uint8_t));
-
 	//INIT components
 	plr_init();
 	obt_init();
 }
 static inline void lvl_destroy(){
-	lvl_map = alc_array_delete(lvl_map);
-
 	//DESTROY components
 	obt_destroy();
 }
