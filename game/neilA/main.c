@@ -28,16 +28,40 @@
 
 int main(void) {
 	port_name_t lcd_p = PORT_B, kpd_p = PORT_A;
+	/*const uint8_t cc_o_crossed[8] = {
+		0b11111,
+		0b11011,
+		0b10101,
+		0b10101,
+		0b10101,
+		0b10101,
+		0b11011,
+		0b11111
+	};
+	const uint8_t cc_s[8] = {
+		0b01111,
+		0b10000,
+		0b11000,
+		0b11000,
+		0b01100,
+		0b00110,
+		0b00011,
+		0b11111
+	};*/
 	
 	// INIT
 	  // Hardware init
 	lcd_init(lcd_p);
+	/*lcd_define_customChar(0,cc_o_crossed);
+	lcd_define_customChar(1,cc_s);*/
 	kpd_init(kpd_p);
 	  // Lib init
 	rnd_init();
 	  // Game init
 	lvl_init();
 	lvl_start();
+	lcd_set_cursor(1,0);
+	
 
 	while (1){
 		lvl_update();

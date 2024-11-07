@@ -42,8 +42,9 @@
 	#define LCD_CMD_SET_INCREMENT_ON_ENTRY 0x02
 	#define LCD_CMD_SET_SHIFT_COURSOR_ON_ENTRY 0x00
 	#define LCD_CMD_SET_SHIFT_WINDOW_ON_ENTRY 0x01
-#define LCD_SET_DDRAM_ADDR 0x80
+#define LCD_DDRAM_BASE 0x80
 	#define LCD_DDRAM_ROW_OFFSET 0x40
+#define LCD_CGRAM_BASE 0x40
 #define LCD_ROWS 2
 #define LCD_COLS 16
 
@@ -131,16 +132,24 @@ static inline void lcd_clear() {
 	_delay_ms(2);
 	lcd_cursor_pos = 0;
 }
-static inline uint8_t lcd_get_cursor(){
-	return lcd_cursor_pos;
-}
 static inline void lcd_set_cursor_direct(uint8_t curs) {
 	lcd_cursor_pos = curs;
-	lcd_command(LCD_SET_DDRAM_ADDR | lcd_cursor_pos);
+	lcd_command(LCD_DDRAM_BASE | lcd_cursor_pos);
 }
 static inline void lcd_set_cursor(uint8_t row, uint8_t col) {
 	if(row >= LCD_ROWS || col >= LCD_COLS) return;	// 2x16 lcd
 	lcd_set_cursor_direct(row*LCD_DDRAM_ROW_OFFSET + col);
+}
+
+static inline bool lcd_define_customChar(uint8_t address, const uint8_t custom_char[8]){
+	if(address > 8) return false;	//up to 8 custom chars
+	lcd_command(LCD_CGRAM_BASE | (address<<3));	//offset by 127
+	for(uint8_t ind = 0; ind < 8; ++ind){
+		lcd_print(custom_char[ind]);
+	}
+	lcd_command(LCD_CMD_RETURN_HOME);
+	_delay_ms(2);
+	return true;
 }
 
 static inline void lcd_init(port_name_t port_name) {
@@ -167,8 +176,17 @@ static inline void lcd_init(port_name_t port_name) {
 	_delay_ms(20);
 
 	// Initialize in 4-bit mode
+		// Hard init
+	lcd_set_port_lower_nibble(LCD_CMD_RETURN_HOME);
+	_delay_us(300);
+	lcd_set_port_lower_nibble(LCD_CMD_RETURN_HOME);
+	_delay_us(300);
+	lcd_set_port_lower_nibble(LCD_CMD_RETURN_HOME);
+	_delay_us(300);
+
+		// Soft init
 	lcd_command(LCD_CMD_RETURN_HOME);
-	lcd_command(LCD_CMD_FUNCTIONSET | LCD_2LINE | LCD_5x8DOTS);	//Function set: 2 lines, 5x8 dots
+	lcd_command(LCD_CMD_FUNCTIONSET | LCD_4BMODE | LCD_2LINE | LCD_5x8DOTS);	//Function set: 2 lines, 5x8 dots
 	lcd_command(LCD_CMD_DISPLAYCONTROL | LCD_DISPLAY_ON | LCD_DISPLAY_CURSOR_OFF);	//display ON, cursor OFF
 	lcd_command(LCD_CMD_CONFIGURE_ENTRY_MODE | LCD_CMD_SET_INCREMENT_ON_ENTRY | LCD_CMD_SET_SHIFT_COURSOR_ON_ENTRY);	//Entry mode set: Increment cursor
 
