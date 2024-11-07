@@ -20,7 +20,6 @@
 
 #define OBT_SPEED_MAX 4
 #define OBT_SPEED_STEP 13	//less = faster obstacles
-#define OBT_POOL_INCREMENT_STEP 31	//tied to lvl_score
 #define OBT_ANIM_STATE_MAX 7
 #define OBT_ANIM_COUNTER_STEP 7	//must be less than OBT_STEP
 
@@ -48,62 +47,46 @@ static inline uint8_t obt_anim_get(uint8_t state){
 	return states[state];
 }
 
-static inline void obt_draw(uint8_t index){
-	if(lvl_is_visible(obt_pool[index].pos)){	//occlusion culling
-		lcd_set_cursor_direct(obt_pool[index].pos);
-		lcd_print(obt_anim_get(obt_pool[index].anim_state));
+static inline void obt_draw(uint8_t id){
+	if(lvl_is_visible(obt_pool[id].pos)){	//occlusion culling
+		lcd_set_cursor_direct(obt_pool[id].pos);
+		lcd_print(obt_anim_get(obt_pool[id].anim_state));
 		lcd_print(' ');	//clears previous pos
 
-		obt_pool[index].anim_state += 1;
+		obt_pool[id].anim_state += 1;
 		//CHECK animation state overflow
-		if(obt_pool[index].anim_state >= OBT_ANIM_STATE_MAX)
-			obt_pool[index].anim_state = 0;
+		if(obt_pool[id].anim_state >= OBT_ANIM_STATE_MAX)
+			obt_pool[id].anim_state = 0;
 	}
 }
 
-static inline void obt_create_new(){
-	if(obt_count < GAME_OBSTACLES_MAX){
-		obt_pool[obt_count].speed = rnd_range(0, OBT_SPEED_MAX);
-		obt_pool[obt_count].anim_state = rnd_range(0,OBT_ANIM_STATE_MAX);
-		obt_pool[obt_count].step_counter = 0;
-		obt_pool[obt_count].pos = rnd_range(GAME_OBSTACLES_STARTPOINT, GAME_OBSTACLES_ENDPOINT);
-		if(rnd_lcg() > 127)	//50% chance
-			obt_pool[obt_count].pos += LCD_DDRAM_ROW_OFFSET;
-		
-		++obt_count;
-	}
-}
-static inline void obt_recreate(uint8_t index){	//replaces old obstacle with new one in the pool
-	obt_pool[index].speed = rnd_range(0, OBT_SPEED_MAX);
-	obt_pool[index].anim_state = rnd_range(0,OBT_ANIM_STATE_MAX);
-	obt_pool[index].step_counter = 0;
-	obt_pool[index].pos = rnd_range(GAME_OBSTACLES_STARTPOINT, GAME_OBSTACLES_ENDPOINT);
+static inline void obt_recreate(uint8_t id){	//replaces old obstacle with new one in the pool
+	obt_pool[id].speed = rnd_range(0, OBT_SPEED_MAX);
+	obt_pool[id].anim_state = rnd_range(0,OBT_ANIM_STATE_MAX);
+	obt_pool[id].step_counter = 0;
+	obt_pool[id].pos = rnd_range(GAME_OBSTACLES_STARTPOINT, GAME_OBSTACLES_ENDPOINT);
 	if(rnd_lcg() > 127)	//50% chance
-		obt_pool[index].pos += LCD_DDRAM_ROW_OFFSET;
-
-	//CHECK
-	/*if(lvl_get_score()%OBT_POOL_INCREMENT_STEP == 0)
-		obt_create_new();*/
+		obt_pool[id].pos += LCD_DDRAM_ROW_OFFSET;
 }
 
-static inline void obt_refresh(uint8_t index){	//update for pool element
-	uint8_t step = OBT_SPEED_STEP - obt_pool[index].speed - lvl_get_difficulty_multiplier();
+static inline void obt_refresh(uint8_t id){	//update for pool element
+	uint8_t step = OBT_SPEED_STEP - obt_pool[id].speed - lvl_get_difficulty_multiplier();
 
-	if(obt_pool[index].step_counter%OBT_ANIM_COUNTER_STEP == 0){	//animation
-		obt_draw(index);
+	if(obt_pool[id].step_counter%OBT_ANIM_COUNTER_STEP == 0){	//animation
+		obt_draw(id);
 	}
-	if(obt_pool[index].step_counter%step == 0){	//step
-		if(obt_pool[index].pos == 0 || obt_pool[index].pos == LCD_DDRAM_ROW_OFFSET){	//out of map
-			lcd_set_cursor_direct(obt_pool[index].pos);
+	if(obt_pool[id].step_counter%step == 0){	//step
+		if(obt_pool[id].pos == 0 || obt_pool[id].pos == LCD_DDRAM_ROW_OFFSET){	//out of map
+			lcd_set_cursor_direct(obt_pool[id].pos);
 			lcd_print(' ');lcd_print(' ');	//hides current obstacle
-			obt_recreate(index);
-		} else if(obt_pool[index].pos == plr_pos){	//player collision
+			obt_recreate(id);
+		} else if(obt_pool[id].pos == plr_pos){	//player collision
 			lvl_report_kill_player();
 		} else{
-			obt_pool[index].pos -= 1;
+			obt_pool[id].pos -= 1;
 		}
 	}
-	obt_pool[index].step_counter += 1;
+	obt_pool[id].step_counter += 1;
 }
 
 
@@ -125,6 +108,12 @@ static inline void obt_update(){
 	uint8_t i = 0;
 	for(i = 0; i < obt_count; i++){
 		obt_refresh(i);
+	}
+}
+
+static inline void obt_complicate(){	//enables obstacle from the pool
+	if(obt_count < GAME_OBSTACLES_MAX){
+		obt_recreate(obt_count++);
 	}
 }
 

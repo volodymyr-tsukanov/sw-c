@@ -22,7 +22,8 @@
 #define LVL_STATUS_PAUSE 1
 #define LVL_STATUS_LOOSE 13
 
-#define LVL_SCORE_SPEED 77	//more = slower ; needs to be first
+#define LVL_SCORE_STEP 77	//more = slower ; needs to be first
+#define LVL_COMPLICATE_STEP 987	//tied to lvl_score
 
 
 #include "dft.h"
@@ -32,7 +33,7 @@
 
 
 uint8_t lvl_score;
-uint8_t lvl_score_counter;
+uint16_t lvl_score_counter;
 uint8_t lvl_status;
 
 
@@ -95,8 +96,12 @@ static inline void lvl_update(){
 		obt_update();
 
 		//POST-UPDATE
-		if(lvl_score_counter%LVL_SCORE_SPEED == 0){
+		if(lvl_score_counter%LVL_SCORE_STEP == 0){
 			++lvl_score;
+		}
+		if(lvl_score_counter%LVL_COMPLICATE_STEP == 0){
+			//COMPLICATE components
+			obt_complicate();
 		}
 		++lvl_score_counter;
 		break;
