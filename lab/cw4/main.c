@@ -23,28 +23,34 @@
 #define LCD_CMD_RETURN_HOME 0x02
 #define LCD_CMD_ENTRY_MODE 0x04
 #define LCD_CMD_DISPLAYCONTROL 0x08
-	#define LCD_DISPLAY_ON 0x04
-	#define LCD_DISPLAY_OFF 0x00
-	#define LCD_DISPLAY_CURSOR_ON 0x02
-	#define LCD_DISPLAY_CURSOR_OFF 0x00
-	#define LCD_DISPLAY_BLINK_ON 0x01
-	#define LCD_DISPLAY_BLINK_OFF 0x00
+#define LCD_DISPLAY_ON 0x04
+#define LCD_DISPLAY_OFF 0x00
+#define LCD_DISPLAY_CURSOR_ON 0x02
+#define LCD_DISPLAY_CURSOR_OFF 0x00
+#define LCD_DISPLAY_BLINK_ON 0x01
+#define LCD_DISPLAY_BLINK_OFF 0x00
 #define LCD_CMD_FUNCTIONSET 0x20
-	#define LCD_4BMODE 0x00
-	#define LCD_8BMODE 0x10
-	#define LCD_1LINE 0x00
-	#define LCD_2LINE 0x08
-	#define LCD_5x8DOTS 0x00
-	#define LCD_5x10DOTS 0x04
+#define LCD_4BMODE 0x00
+#define LCD_8BMODE 0x10
+#define LCD_1LINE 0x00
+#define LCD_2LINE 0x08
+#define LCD_5x8DOTS 0x00
+#define LCD_5x10DOTS 0x04
 #define LCD_CMD_CONFIGURE_ENTRY_MODE 0x04
-	#define LCD_CMD_SET_DECREMENT_ON_ENTRY 0x00	//was 0<<1
-	#define LCD_CMD_SET_INCREMENT_ON_ENTRY 0x02
-	#define LCD_CMD_SET_SHIFT_COURSOR_ON_ENTRY 0x00
-	#define LCD_CMD_SET_SHIFT_WINDOW_ON_ENTRY 0x01
+#define LCD_CMD_SET_DECREMENT_ON_ENTRY 0x00	//was 0<<1
+#define LCD_CMD_SET_INCREMENT_ON_ENTRY 0x02
+#define LCD_CMD_SET_SHIFT_COURSOR_ON_ENTRY 0x00
+#define LCD_CMD_SET_SHIFT_WINDOW_ON_ENTRY 0x01
 #define LCD_SET_DDRAM_ADDR 0x80
-	#define LCD_DDRAM_ROW_OFFSET 0x40
+#define LCD_DDRAM_ROW_OFFSET 0x40
+#define LCD_SET_CGRAM_ADDR 0x40	//0b01000000
+#define LCD_CGRAM_BASE 0x00
+#define LCD_CGRAM_C1 0
 #define LCD_ROWS 2
 #define LCD_COLS 16
+
+#define KPD_ROWS 4
+#define KPD_COLS 4
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -111,30 +117,40 @@ void lcd_clear() {
 	lcd_command(LCD_CMD_CLEAR);
 	_delay_ms(2);
 }
-void lcd_set_cursor(uint8_t row, uint8_t col) {
+void lcd_move_cursor(uint8_t row, uint8_t col) {
 	if(row > 1 || col > 15) return;	// 2x16 lcd
 	uint8_t address = row*LCD_DDRAM_ROW_OFFSET + col;
 	lcd_command(LCD_SET_DDRAM_ADDR | address);
 }
 
+void lcd_define_customChar(uint8_t address, const uint8_t custom_char[8]){
+	address &= 0x07;
+	lcd_command(LCD_SET_CGRAM_ADDR | (address<<3));	//przesuniête 0 127
+	for(uint8_t ind = 0; ind < 8; ++ind){
+		lcd_print(custom_char[ind]);
+	}
+	lcd_command(LCD_CMD_RETURN_HOME);
+	_delay_ms(2);
+}
+
 void lcd_init(port_name_t port_name) {
 	switch (port_name){
 		case PORT_A:
-			lcd_ddr = &DDRA;
-			lcd_port = &PORTA;
-			break;
+		lcd_ddr = &DDRA;
+		lcd_port = &PORTA;
+		break;
 		case PORT_B:
-			lcd_ddr = &DDRB;
-			lcd_port = &PORTB;
-			break;
+		lcd_ddr = &DDRB;
+		lcd_port = &PORTB;
+		break;
 		case PORT_C:
-			lcd_ddr = &DDRC;
-			lcd_port = &PORTC;
-			break;
+		lcd_ddr = &DDRC;
+		lcd_port = &PORTC;
+		break;
 		case PORT_D:
-			lcd_ddr = &DDRD;
-			lcd_port = &PORTD;
-			break;
+		lcd_ddr = &DDRD;
+		lcd_port = &PORTD;
+		break;
 	}
 
 	*lcd_ddr = 0xFF; 	//portB as output
@@ -147,68 +163,85 @@ void lcd_init(port_name_t port_name) {
 	lcd_command(LCD_CMD_CONFIGURE_ENTRY_MODE | LCD_CMD_SET_INCREMENT_ON_ENTRY | LCD_CMD_SET_SHIFT_COURSOR_ON_ENTRY);	//Entry mode set: Increment cursor
 
 	lcd_clear();
+
+	//CGRAM
+	const uint8_t customChar1[8] = {
+		0b00011111,
+		0b00011011,
+		0b00010101,
+		0b00010101,
+		0b00010101,
+		0b00010101,
+		0b00011011,
+		0b00011111
+	};
+	lcd_define_customChar(LCD_CGRAM_C1, customChar1);
 }
 
 
-void kpd_init(port_name_t port_name){
-	switch (port_name){
-		case PORT_A:
-			kpd_ddr = &DDRA;
-			kpd_pin = &PINA;
-			kpd_port = &PORTA;
-			break;
-		case PORT_B:
-			kpd_ddr = &DDRB;
-			kpd_pin = &PINB;
-			kpd_port = &PORTB;
-			break;
-		case PORT_C:
-			kpd_ddr = &DDRC;
-			kpd_pin = &PINC;
-			kpd_port = &PORTC;
-			break;
-		case PORT_D:
-			kpd_ddr = &DDRD;
-			kpd_pin = &PIND;
-			kpd_port = &PORTD;
-			break;
-	}
-	
-	*kpd_ddr = 0xF0;	//rows=in, cols=out
-	*kpd_port = 0x0F;
-}
 bool kpd_is_key_pressed(uint8_t row, uint8_t column){	//keypad indexing from 0
 	*kpd_port = ~(1<<(column+4));
 	_delay_ms(4);
 	return ((*kpd_pin & (1<<row)) == 0);
 }
+bool kpd_is_key_pressed_indexed(uint8_t index){
+	return kpd_is_key_pressed((index-1)/KPD_COLS, (index-1)%KPD_COLS);
+}
+
+void kpd_init(port_name_t port_name){
+	switch (port_name){
+		case PORT_A:
+		kpd_ddr = &DDRA;
+		kpd_pin = &PINA;
+		kpd_port = &PORTA;
+		break;
+		case PORT_B:
+		kpd_ddr = &DDRB;
+		kpd_pin = &PINB;
+		kpd_port = &PORTB;
+		break;
+		case PORT_C:
+		kpd_ddr = &DDRC;
+		kpd_pin = &PINC;
+		kpd_port = &PORTC;
+		break;
+		case PORT_D:
+		kpd_ddr = &DDRD;
+		kpd_pin = &PIND;
+		kpd_port = &PORTD;
+		break;
+	}
+
+	*kpd_ddr = 0xF0;	//rows=in, cols=out
+	*kpd_port = 0x0F;
+}
+
 
 
 int main(void) {
 	port_name_t lcd_p = PORT_B, kpd_p = PORT_A;
-	//uint8_t lcd_cursor_row = 0, lcd_cursor_col = 0;
-	char* _name = "Volodymyr";
-	char* _surname = "Tsukanov";
-
 	lcd_init(lcd_p);
 	kpd_init(kpd_p);
-	
-	lcd_print('?');
 
-	while (1){
+	lcd_print('0');
+
+	while (1) {
 		if(kpd_is_key_pressed(0,3)){	//A
-			lcd_set_cursor(0,0);
-			lcd_print_string(_name, 9);
-			lcd_set_cursor(1,8);
-			lcd_print_string(_surname, 8);
-			_delay_ms(500);
+			lcd_move_cursor(0,0);
+			lcd_print_string("Volodymyr",9);
+			lcd_move_cursor(1,8);
+			lcd_print_string("Tsukanov",8);
+			_delay_ms(700);
 		}
 		if(kpd_is_key_pressed(1,3)){	//B
 			lcd_clear();
-			_delay_ms(500);
+			_delay_ms(700);
 		}
-		
-		_delay_ms(50);
+		if(kpd_is_key_pressed(2,3)){	//C
+			lcd_move_cursor(1,0);
+			lcd_print(LCD_CGRAM_C1);
+			_delay_ms(700);
+		}
 	}
 
 	return 0;
