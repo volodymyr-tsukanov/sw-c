@@ -24,11 +24,13 @@
 #include "rnd.h"
 //game interfaces
 #include "lvl.h"
+//debug
+//#include "dbg.h"
 
 
 int main(void) {
 	port_name_t lcd_p = PORT_B, kpd_p = PORT_A;
-	/*const uint8_t cc_o_crossed[8] = {
+	const uint8_t cc_o_crossed[8] = {
 		0b11111,
 		0b11011,
 		0b10101,
@@ -47,13 +49,13 @@ int main(void) {
 		0b00110,
 		0b00011,
 		0b11111
-	};*/
+	};
 	
 	// INIT
 	  // Hardware init
 	lcd_init(lcd_p);
-	/*lcd_define_customChar(0,cc_o_crossed);
-	lcd_define_customChar(1,cc_s);*/
+	lcd_define_customChar(0,cc_o_crossed);
+	lcd_define_customChar(1,cc_s);
 	kpd_init(kpd_p);
 	  // Lib init
 	rnd_init();

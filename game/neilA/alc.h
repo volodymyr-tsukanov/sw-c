@@ -22,16 +22,15 @@
 #include "dft.h"
 
 
-static inline void* alc_array_new(uint8_t length, size_t type_size){
+static inline void* alc_array_new_fill(const uint8_t length, const size_t type_size){
 	return calloc(length, type_size);
 }
-static inline void* alc_array_tmp(uint8_t length, size_t type_size){
+static inline void* alc_array_new(const uint8_t length, const size_t type_size){
 	return malloc(length * type_size);
 }
 
-static inline bool alc_array_resize(void* arr, uint8_t length, size_t type_size){
-	arr = realloc(arr, length * type_size);
-	return arr != NULL;
+static inline void* alc_array_resize(void* arr, const uint8_t length, const size_t type_size){
+	return realloc(arr, length * type_size);
 }
 
 static inline void* alc_array_delete(void* arr){	//eg. arr = <this-func>(arr)

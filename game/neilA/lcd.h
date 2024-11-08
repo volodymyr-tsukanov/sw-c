@@ -102,7 +102,7 @@ static inline void lcd_print_decimal(uint8_t number){
 		return;
 	}
 	uint8_t bufferRealSize = 0;
-	uint8_t* buffer = (uint8_t*) alc_array_tmp(3,sizeof(uint8_t));
+	uint8_t* buffer = (uint8_t*) alc_array_new(3,sizeof(uint8_t));
 	while(number > 0){
 		buffer[3-(++bufferRealSize)] = number%10;
 		number /= 10;
@@ -117,7 +117,7 @@ static inline void lcd_print_decimal_32(uint32_t number){
 		return;
 	}
 	uint8_t bufferRealSize = 0;
-	uint8_t* buffer = (uint8_t*) alc_array_tmp(10,sizeof(uint8_t));
+	uint8_t* buffer = (uint8_t*) alc_array_new(10,sizeof(uint8_t));
 	while(number > 0){
 		buffer[10-(++bufferRealSize)] = number%10;
 		number /= 10;

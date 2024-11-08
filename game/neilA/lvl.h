@@ -1,5 +1,5 @@
 /*
-    neilA general level interface (contains obstacles, enemies, player)
+    neilA general level interface, updates all elements
     Copyright (C)  2024  volodymyr-tsukanov
 
     This program is free software: you can redistribute it and/or modify
@@ -21,9 +21,10 @@
 #define LVL_STATUS_RUN 0
 #define LVL_STATUS_PAUSE 1
 #define LVL_STATUS_LOOSE 13
+#define LVL_STATUS_DESTROYED 19
 
-#define LVL_SCORE_STEP 77	//more = slower ; needs to be first
-#define LVL_COMPLICATE_STEP 987	//tied to lvl_score
+#define LVL_SCORE_STEP 67	//more = slower ; needs to be first
+#define LVL_COMPLICATE_STEP 687	//tied to lvl_score
 
 
 #include "dft.h"
@@ -46,11 +47,11 @@ static inline uint8_t lvl_get_difficulty_multiplier(){	//from 1 to 4
 	return difficulty;
 }
 
-static inline bool lvl_is_visible(uint8_t pos){
+static inline bool lvl_is_visible(uint8_t pos){	//check if pos is visible on map
 	if(pos > LCD_DDRAM_ROW_OFFSET){	//row 2
 		pos -= LCD_DDRAM_ROW_OFFSET;
 	}
-	return pos <= 16;
+	return pos <= LCD_COLS;
 }
 
 static inline void lvl_report_kill_player(){
@@ -64,22 +65,27 @@ static inline void lvl_report_kill_player(){
 }
 
 // Game defaults
+#include "map.h"
 #include "plr.h"
-#include "obt.h"
 static inline void lvl_init(){
-	//INIT components
+	map_init();
 	plr_init();
-	obt_init();
 }
 static inline void lvl_destroy(){
-	//DESTROY components
-	obt_destroy();
+	map_destroy();
+	lvl_status = LVL_STATUS_DESTROYED;
 }
 
 static inline void lvl_start(){
+	uint8_t ind = 0;
 	lvl_score = 1;
-	lvl_score_counter = 0;
+	lvl_score_counter = 1;
 	lvl_status = LVL_STATUS_RUN;
+
+	//START spawn
+	for( ; ind < GAME_OBSTACLES_MIN; ind++){
+		map_obj_new(GAME_CLASS_OBSTACLE);
+	}
 }
 
 static inline void lvl_update(){
@@ -93,15 +99,20 @@ static inline void lvl_update(){
 
 		//UPDATE components
 		plr_update();
-		obt_update();
+		map_update();
 
 		//POST-UPDATE
 		if(lvl_score_counter%LVL_SCORE_STEP == 0){
 			++lvl_score;
+			/*lcd_set_cursor(1,0);	//DEBUG
+			lcd_print_decimal(lvl_score);
+			lcd_set_cursor(0,0);
+			lcd_print_decimal(lvl_get_difficulty_multiplier());*/
 		}
-		if(lvl_score_counter%LVL_COMPLICATE_STEP == 0){
-			//COMPLICATE components
-			obt_complicate();
+		if(lvl_score_counter%LVL_COMPLICATE_STEP == 0){	//COMPLICATE
+			map_complicate();
+			/*lcd_set_cursor(0,0);	//DEBUG
+			lcd_print(1);*/
 		}
 		++lvl_score_counter;
 		break;

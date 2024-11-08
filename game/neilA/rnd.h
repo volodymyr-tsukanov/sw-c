@@ -53,7 +53,7 @@ static inline uint8_t rnd_adc(){
 	return 0;
 }
 
-static inline uint8_t rnd_range(uint8_t _from, uint8_t _to){
+static inline uint8_t rnd_range(const uint8_t _from, const uint8_t _to){
 	return _from + (rnd_lcg()%_to);
 }
 

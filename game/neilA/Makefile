@@ -17,7 +17,7 @@ ELF = $(BUILD_DIR)/$(PROJECT_NAME).elf
 HEX = $(BUILD_DIR)/$(PROJECT_NAME).hex
 
 # Default build option
-BUILD_TYPE ?= debug
+BUILD_TYPE ?= mini
 INFO_TARGET ?= $(BUILD_DIR)/$(PROJECT_NAME).elf
 
 # Compiler flags for different build types
@@ -50,7 +50,12 @@ all: $(HEX)
 
 info:
 	$(AVRSIZE) $(INFO_TARGET)
-	@echo "\t- text is the code section (program code).\n\t- data is the initialized data section.\n\t- bss is the uninitialized data section.\n\t- dec and hex values show the total memory used by the program in decimal and hexadecimal."
+# Hint
+#  text (program code)
+#    minimize code, use `static inline` functions
+#  data (initialized) ; bss (uninitialized)
+#    global&static variables
+#  dec and hex (total memory used)
 
 # Clean the build directory
 clean:
@@ -61,4 +66,5 @@ print-build:
 	@echo "Building $(PROJECT_NAME) with $(BUILD_TYPE) settings..."
 
 
-# Usage:	make print-build all info BUILD_TYPE=mini
+# Usage:	make all info BUILD_TYPE=mini
+#		make info INFO_TARGET=<program>.elf

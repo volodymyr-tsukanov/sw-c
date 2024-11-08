@@ -40,10 +40,9 @@ uint8_t plr_anim_state;
 uint8_t plr_anim_counter;
 
 
-static inline uint8_t plr_anim_get(uint8_t state){
+static inline uint8_t plr_anim_get(const uint8_t state){
 	const char* states = "$SI|/-\\-||IS$";
-	if(state >= PLR_ANIM_STATE_MAX) state = PLR_ANIM_STATE_MAX-1;
-	return states[state];	//for overflow resolving
+	return states[state >= PLR_ANIM_STATE_MAX ? PLR_ANIM_STATE_MAX-1 : state];	//for overflow resolving
 }
 
 static inline void plr_action_up(){

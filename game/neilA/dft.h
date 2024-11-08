@@ -27,11 +27,18 @@
 #define GAME_INPUT_B 3
 #define GAME_INPUT_X 5
 #define GAME_INPUT_DOWN 8
+
+#define GAME_MAP_ENDPOINT 0x2A //42
+
 #define GAME_PLAYER_STARTPOINT 0x02
-#define GAME_OBSTACLES_MIN 5
-#define GAME_OBSTACLES_MAX 14
+
+#define GAME_OBSTACLES_MIN 3
+#define GAME_OBSTACLES_MAX 19
 #define GAME_OBSTACLES_STARTPOINT 0x0F	//15
-#define GAME_OBSTACLES_ENDPOINT 0x2A	//42
+
+#define GAME_CLASS_PLAYER 1
+#define GAME_CLASS_OBSTACLE 2
+
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -44,5 +51,13 @@ typedef enum {
 	PORT_C,
 	PORT_D
 } port_name_t;
+
+typedef struct {
+	uint16_t id;
+	uint8_t pos;
+	uint8_t speed;
+	uint8_t anim_state;
+	uint8_t step_counter;
+} obj_t;
 
 #endif  //DEFAULTS_H
