@@ -20,7 +20,7 @@
 
 #define F_CPU 4000000	//CPU freq(HZ) for delay
 
-#define GAME_UPTDELAY 50	//update delay in ms
+#define GAME_UPTDELAY 47	//update delay in ms
 //KeyPad inputs
 #define GAME_INPUT_A 1
 #define GAME_INPUT_UP 2
@@ -28,7 +28,7 @@
 #define GAME_INPUT_X 5
 #define GAME_INPUT_DOWN 8
 
-#define GAME_MAP_ENDPOINT 0x2A //42
+#define GAME_MAP_ENDPOINT 0x30 //48
 
 #define GAME_PLAYER_STARTPOINT 0x02
 
@@ -59,5 +59,25 @@ typedef struct {
 	uint8_t anim_state;
 	uint8_t step_counter;
 } obj_t;
+
+
+static inline void dft_array_sort_asc(uint8_t* arr, uint8_t length){
+	uint8_t tmp, i, j, ind;
+	for(i = 0; i < length; i++){
+		ind = i;
+		for(j = length-1; j > i; j--){
+			if(arr[j] == 0xFF){
+				ind = j;
+				break;
+			}
+			if(arr[j] < arr[ind]) ind = j;	//min
+		}
+		if(ind != i){	//swap
+			tmp = arr[i];
+			arr[i] = arr[ind];
+			arr[ind] = tmp;
+		}
+	}
+}
 
 #endif  //DEFAULTS_H

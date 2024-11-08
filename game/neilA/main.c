@@ -62,8 +62,6 @@ int main(void) {
 	  // Game init
 	lvl_init();
 	lvl_start();
-	lcd_set_cursor(1,0);
-	
 
 	while (1){
 		lvl_update();

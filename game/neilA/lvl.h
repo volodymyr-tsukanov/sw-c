@@ -23,8 +23,8 @@
 #define LVL_STATUS_LOOSE 13
 #define LVL_STATUS_DESTROYED 19
 
-#define LVL_SCORE_STEP 67	//more = slower ; needs to be first
-#define LVL_COMPLICATE_STEP 687	//tied to lvl_score
+#define LVL_SCORE_STEP 77	//more = slower ; needs to be first
+#define LVL_COMPLICATE_STEP 487	//tied to lvl_score
 
 
 #include "dft.h"

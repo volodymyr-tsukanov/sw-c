@@ -19,6 +19,7 @@
 #define MAP_H
 
 #define MAP_FREE_DIST 5	//distance between cells
+#define MAP_FREE_ITER_LIMIT 255
 
 #include "dft.h"
 #include "alc.h"
@@ -51,14 +52,18 @@ static inline bool map_find_free_places(uint8_t from, uint8_t to){	//place = row
 		if(valid){
 			map_free_pos_pool[count++] = pos;
 		}
-		if(++iterations > 100) return false;
+		if(++iterations > MAP_FREE_ITER_LIMIT) return false;
 	}
+	//lcd_set_cursor(0,0) ; lcd_print_decimal(count); lcd_set_cursor(1,0); lcd_print_decimal(map_free_pos_size);  lcd_set_cursor(0,3) ; lcd_print_decimal(map_obj_index);
+	dft_array_sort_asc(map_free_pos_pool,map_free_pos_size);
 	return true;
 }
 
 static inline uint8_t map_take_free_place(){	//returns position and removes places from free
-	if(map_free_pos_index == map_free_pos_size)
+	if(map_free_pos_index == map_free_pos_size){
+		map_free_pos_pool = alc_array_delete(map_free_pos_pool);
 		map_find_free_places(GAME_OBSTACLES_STARTPOINT,GAME_MAP_ENDPOINT);
+	}
 	return map_free_pos_size > 0 ? map_free_pos_pool[map_free_pos_index++] : 0;
 }
 
