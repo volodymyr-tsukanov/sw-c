@@ -25,7 +25,9 @@
 #define GAME_INPUT_A 1
 #define GAME_INPUT_UP 2
 #define GAME_INPUT_B 3
+#define GAME_INPUT_LEFT 4
 #define GAME_INPUT_X 5
+#define GAME_INPUT_RIGHT 6
 #define GAME_INPUT_DOWN 8
 
 #define GAME_MAP_ENDPOINT 0x30 //48
@@ -37,7 +39,11 @@
 #define GAME_OBSTACLES_STARTPOINT 0x0F	//15
 
 #define GAME_CLASS_PLAYER 1
+	#define GAME_CLASS_PLAYER_CG_SHRINK_1 1
+	#define GAME_CLASS_PLAYER_CG_SHRINK_2 2
 #define GAME_CLASS_OBSTACLE 2
+
+#define GAME_CG_CROSS 0
 
 
 #include <avr/io.h>

@@ -31,31 +31,42 @@
 int main(void) {
 	port_name_t lcd_p = PORT_B, kpd_p = PORT_A;
 	const uint8_t cc_o_crossed[8] = {
-		0b11111,
+		0b01110,
 		0b11011,
 		0b10101,
 		0b10101,
-		0b10101,
+		0b11011,
 		0b10101,
 		0b11011,
-		0b11111
+		0b01110
 	};
 	const uint8_t cc_s[8] = {
+		0b00000,
 		0b01111,
 		0b10000,
-		0b11000,
-		0b11000,
-		0b01100,
+		0b01110,
+		0b00001,
+		0b11110,
+		0b00000,
+		0b00000
+	};
+	const uint8_t cc_s2[8] = {
+		0b00000,
 		0b00110,
-		0b00011,
-		0b11111
+		0b01000,
+		0b00100,
+		0b00010,
+		0b01100,
+		0b00000,
+		0b00000
 	};
 	
 	// INIT
 	  // Hardware init
 	lcd_init(lcd_p);
-	lcd_define_customChar(0,cc_o_crossed);
-	lcd_define_customChar(1,cc_s);
+	lcd_define_customChar(GAME_CG_CROSS,cc_o_crossed);
+	lcd_define_customChar(GAME_CLASS_PLAYER_CG_SHRINK_1,cc_s);
+	lcd_define_customChar(GAME_CLASS_PLAYER_CG_SHRINK_2,cc_s2);
 	kpd_init(kpd_p);
 	  // Lib init
 	rnd_init();

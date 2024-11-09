@@ -68,8 +68,8 @@ static inline void lvl_report_kill_player(){
 #include "map.h"
 #include "plr.h"
 static inline void lvl_init(){
-	map_init();
 	plr_init();
+	map_init();
 }
 static inline void lvl_destroy(){
 	map_destroy();
@@ -79,7 +79,7 @@ static inline void lvl_destroy(){
 static inline void lvl_start(){
 	uint8_t ind = 0;
 	lvl_score = 1;
-	lvl_score_counter = 1;
+	lvl_score_counter = 1;	//to wait 1 cycle before score increases
 	lvl_status = LVL_STATUS_RUN;
 
 	//START spawn
@@ -96,6 +96,10 @@ static inline void lvl_update(){
 			plr_action_up();
 		else if(kpd_is_key_pressed_indexed(GAME_INPUT_DOWN))
 			plr_action_down();
+		else if(kpd_is_key_pressed_indexed(GAME_INPUT_LEFT))
+			plr_action_left();
+		else if(kpd_is_key_pressed_indexed(GAME_INPUT_RIGHT))
+			plr_action_right();
 
 		//UPDATE components
 		plr_update();
