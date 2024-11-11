@@ -18,7 +18,7 @@
 #ifndef OBSTACLES_H
 #define OBSTACLES_H
 
-#define OBT_SPEED_MAX 6
+#define OBT_SPEED_MAX 4
 #define OBT_SPEED_STEP 21	//less = faster obstacles
 #define OBT_ANIM_STATE_MAX 7
 #define OBT_ANIM_COUNTER_STEP 7	//must be less than OBT_STEP
@@ -51,14 +51,12 @@ static inline void obt_draw(obj_t* obstacle){
 static inline void obt_init(obj_t* obstacle){
 	obstacle->speed = rnd_range(0, OBT_SPEED_MAX);
 	obstacle->anim_state = rnd_range(0,OBT_ANIM_STATE_MAX);
-	obstacle->step_counter = 0;
+	obstacle->step_counter = 1;
 	obstacle->pos = map_take_free_place();
-	if(rnd_lcg() > 127)	//50% chance
-		obstacle->pos += LCD_DDRAM_ROW_OFFSET;
 }
 
 static inline void obt_update(obj_t* obstacle){
-	uint8_t step = OBT_SPEED_STEP - obstacle->speed - lvl_get_difficulty_multiplier();
+	uint8_t step = OBT_SPEED_STEP - obstacle->speed - lvl_get_difficulty_multiplier(32);
 
 	if(obstacle->step_counter%OBT_ANIM_COUNTER_STEP == 0){	//animation
 		obt_draw(obstacle);
@@ -67,7 +65,7 @@ static inline void obt_update(obj_t* obstacle){
 		if(obstacle->pos == 0 || obstacle->pos == LCD_DDRAM_ROW_OFFSET){	//out of map
 			lcd_set_cursor_direct(obstacle->pos);
 			lcd_print(' ');lcd_print(' ');	//hides current obstacle
-			obt_init(obstacle);
+			obt_init(obstacle);	//recreates obstacle
 		} else if(obstacle->pos == plr_pos){	//player collision
 			lvl_report_kill_player();
 		} else{

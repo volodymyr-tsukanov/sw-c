@@ -29,14 +29,15 @@
 #define GAME_INPUT_X 5
 #define GAME_INPUT_RIGHT 6
 #define GAME_INPUT_DOWN 8
+#define GAME_INPUT_D 9
 
-#define GAME_MAP_ENDPOINT 0x30 //48
+#define GAME_MAP_ENDPOINT 0x3D //48
 
 #define GAME_PLAYER_STARTPOINT 0x02
 
 #define GAME_OBSTACLES_MIN 3
 #define GAME_OBSTACLES_MAX 19
-#define GAME_OBSTACLES_STARTPOINT 0x0F	//15
+#define GAME_OBSTACLES_STARTPOINT 0x10	//16
 
 #define GAME_CLASS_PLAYER 1
 	#define GAME_CLASS_PLAYER_CG_SHRINK_1 1
@@ -49,7 +50,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdbool.h>
-
 
 typedef enum {
 	PORT_A,

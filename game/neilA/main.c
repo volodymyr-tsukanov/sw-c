@@ -68,11 +68,11 @@ int main(void) {
 	lcd_define_customChar(GAME_CLASS_PLAYER_CG_SHRINK_1,cc_s);
 	lcd_define_customChar(GAME_CLASS_PLAYER_CG_SHRINK_2,cc_s2);
 	kpd_init(kpd_p);
-	  // Lib init
-	rnd_init();
 	  // Game init
 	lvl_init();
 	lvl_start();
+	  //Lib init
+	rnd_init();
 
 	while (1){
 		lvl_update();

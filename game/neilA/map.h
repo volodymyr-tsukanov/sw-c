@@ -18,8 +18,7 @@
 #ifndef MAP_H
 #define MAP_H
 
-#define MAP_FREE_DIST 5	//distance between cells
-#define MAP_FREE_ITER_LIMIT 255
+#define MAP_FREE_DIST 8	//distance between cells
 
 #include "dft.h"
 #include "alc.h"
@@ -33,38 +32,45 @@ uint8_t* map_free_pos_pool;
 obj_t* map_obj_pool;
 
 
-static inline bool map_find_free_places(uint8_t from, uint8_t to){	//place = row
-	bool valid;
-	uint8_t count = 0, ind, free_dist = MAP_FREE_DIST-lvl_get_difficulty_multiplier(), iterations = 0;
-	map_free_pos_index = 0;
-	map_free_pos_size = (to-from)/free_dist - 1;
-	map_free_pos_pool = (uint8_t*) alc_array_new(map_free_pos_size,sizeof(uint8_t));
-	while (count < map_free_pos_size){
-		uint8_t pos = rnd_range(from, to);
-		valid = true;
-		for(ind = 0; ind < count; ind++){
-			uint8_t dist = pos > map_free_pos_pool[ind] ? pos-map_free_pos_pool[ind] : map_free_pos_pool[ind]-pos;
-			if(dist < free_dist){
-				valid = false;
-				break;
-			}
+static inline bool map_find_free_places(uint8_t from, uint8_t to, uint8_t max_pool_size){	//place = row
+	uint8_t free_dist = MAP_FREE_DIST-lvl_get_difficulty_multiplier(16), upperRowCount = rnd_range(0,3), pos = from+rnd_range(0,4), step;
+	if(max_pool_size == 0) max_pool_size = (to-from)/free_dist;
+	map_free_pos_size = 0;
+	map_free_pos_pool = (uint8_t*) alc_array_new(max_pool_size,sizeof(uint8_t));
+	/*lcd_set_cursor(0,0); lcd_print_string("****************",16);	//DEBUG
+	lcd_set_cursor(1,0); lcd_print_string("****************",16);*/
+	while(pos < to && map_free_pos_size < max_pool_size){
+		step = rnd_range(0,100) + upperRowCount*10;	//get random percentage ; every repeated row placement +10%
+		if(step > 66){
+			step = pos + LCD_DDRAM_ROW_OFFSET;
+			upperRowCount = 0;
 		}
-		if(valid){
-			map_free_pos_pool[count++] = pos;
+		else{
+			step = pos;
+			++upperRowCount;
 		}
-		if(++iterations > MAP_FREE_ITER_LIMIT) return false;
+		map_free_pos_pool[map_free_pos_size++] = step;
+		//lcd_set_cursor_direct(step);	//DEBUG
+
+		step = rnd_range(0,100);	//get random percentage
+		if(step > 90) step = 2 * free_dist;
+		else if(step > 40) step = free_dist + ((step/10)%(free_dist-2));
+		else step = free_dist;
+		pos += step;
+		//lcd_print_decimal(step);	//DEBUG
 	}
-	//lcd_set_cursor(0,0) ; lcd_print_decimal(count); lcd_set_cursor(1,0); lcd_print_decimal(map_free_pos_size);  lcd_set_cursor(0,3) ; lcd_print_decimal(map_obj_index);
-	dft_array_sort_asc(map_free_pos_pool,map_free_pos_size);
-	return true;
+	//lcd_set_cursor(1,1); lcd_print_decimal(map_free_pos_size);	//DEBUG
+	map_free_pos_pool = alc_array_resize(map_free_pos_pool,map_free_pos_size,sizeof(uint8_t));
+	map_free_pos_index = 0;
+	return map_free_pos_size > 0;
 }
 
 static inline uint8_t map_take_free_place(){	//returns position and removes places from free
-	if(map_free_pos_index == map_free_pos_size){
+	if(map_free_pos_index >= map_free_pos_size){
 		map_free_pos_pool = alc_array_delete(map_free_pos_pool);
-		map_find_free_places(GAME_OBSTACLES_STARTPOINT,GAME_MAP_ENDPOINT);
+		map_find_free_places(GAME_OBSTACLES_STARTPOINT,GAME_MAP_ENDPOINT,0);
 	}
-	return map_free_pos_size > 0 ? map_free_pos_pool[map_free_pos_index++] : 0;
+	return map_free_pos_size > 0 ? map_free_pos_pool[map_free_pos_index++] : GAME_MAP_ENDPOINT;
 }
 
 
@@ -86,14 +92,13 @@ static inline bool map_obj_new(uint8_t class_id){
 
 // Game defaults
 static inline void map_init(){
-	map_id_index = 0;
-	map_obj_index = 0;
-	map_obj_size = GAME_OBSTACLES_MAX + 1;	//1 is player
+	map_id_index = map_obj_index = 0;
+	map_obj_size = GAME_OBSTACLES_MAX;
 	map_obj_pool = (obj_t*) alc_array_new(map_obj_size,sizeof(obj_t));
-	map_find_free_places(GAME_OBSTACLES_STARTPOINT,GAME_MAP_ENDPOINT);
+	map_free_pos_size = map_free_pos_index = 0;
 }
 static inline void map_destroy(){
-	map_obj_size = 0;
+	map_obj_size = map_free_pos_size = 0;
 	map_obj_pool = alc_array_delete(map_obj_pool);
 	map_free_pos_pool = alc_array_delete(map_free_pos_pool);
 }

@@ -24,7 +24,11 @@
 #define LVL_STATUS_DESTROYED 19
 
 #define LVL_SCORE_STEP 77	//more = slower ; needs to be first
-#define LVL_COMPLICATE_STEP 487	//tied to lvl_score
+#define LVL_COMPLICATE_STEP 487	//tied to lvl_score ; needs to be first
+
+#define LVL_SCREEN_STEP_FST 29
+#define LVL_SCREEN_STEP_MED 39
+#define LVL_SCREEN_STEP_SLW 56
 
 
 #include "dft.h"
@@ -32,17 +36,54 @@
 #include "lcd.h"
 #include "kpd.h"
 
+typedef enum {
+	SPLASH,
+	PAUSE,
+	LOOSE
+} lvl_screen_t;
 
 uint8_t lvl_score;
-uint16_t lvl_score_counter;
 uint8_t lvl_status;
+uint16_t lvl_score_counter;
 
+
+static inline void lvl_show_screen(lvl_screen_t screen){
+	switch (screen){
+	case SPLASH:
+	{
+		uint8_t ind = 0;
+		lcd_set_cursor_direct(1);
+		lcd_print_string("|*- neilA -*|",13);
+		for( ; ind < 16; ind++){
+			_delay_ms(LVL_SCREEN_STEP_SLW);
+			lcd_set_cursor(1,ind);
+			lcd_print(' '); lcd_print('$');
+		}
+	}
+		break;
+	case PAUSE:
+		lcd_set_cursor_direct(1);
+		lcd_print_string("|=- PAUSED -=|",14);
+		lcd_set_cursor(1,0);
+		lcd_print_string("Any key to play", 15);
+		_delay_ms(700);
+		break;
+	case LOOSE:
+		lcd_set_cursor(0,5);
+		lcd_print_string("SCORE: ",7);
+		lcd_print_decimal(lvl_score);
+		lcd_print(' ');
+		lcd_set_cursor(1,2);
+		lcd_print_string("X to restart",12);
+		break;
+	}
+}
 
 static inline uint8_t lvl_get_score(){
 	return lvl_score;
 }
-static inline uint8_t lvl_get_difficulty_multiplier(){	//from 1 to 4
-	uint8_t difficulty = lvl_score / 64;
+static inline uint8_t lvl_get_difficulty_multiplier(uint8_t divider){	//from 1 to 4
+	uint8_t difficulty = lvl_score / divider;
 	if(difficulty == 0) difficulty = 1;
 	return difficulty;
 }
@@ -56,12 +97,7 @@ static inline bool lvl_is_visible(uint8_t pos){	//check if pos is visible on map
 
 static inline void lvl_report_kill_player(){
 	lvl_status = LVL_STATUS_LOOSE;
-	lcd_set_cursor(0,5);
-	lcd_print_string("SCORE: ",7);
-	lcd_print_decimal(lvl_score);
-	lcd_print(' ');
-	lcd_set_cursor(1,2);
-	lcd_print_string("X to restart",12);
+	lvl_show_screen(LOOSE);
 }
 
 // Game defaults
@@ -82,6 +118,8 @@ static inline void lvl_start(){
 	lvl_score_counter = 1;	//to wait 1 cycle before score increases
 	lvl_status = LVL_STATUS_RUN;
 
+	lvl_show_screen(SPLASH);
+
 	//START spawn
 	for( ; ind < GAME_OBSTACLES_MIN; ind++){
 		map_obj_new(GAME_CLASS_OBSTACLE);
@@ -92,7 +130,11 @@ static inline void lvl_update(){
 	switch (lvl_status){
 	case LVL_STATUS_RUN:
 		//CHECK input
-		if(kpd_is_key_pressed_indexed(GAME_INPUT_UP))
+		if(kpd_is_key_pressed_indexed(GAME_INPUT_D)){
+			lvl_status = LVL_STATUS_PAUSE;
+			lvl_show_screen(PAUSE);
+			break;
+		} else if(kpd_is_key_pressed_indexed(GAME_INPUT_UP))
 			plr_action_up();
 		else if(kpd_is_key_pressed_indexed(GAME_INPUT_DOWN))
 			plr_action_down();
@@ -130,6 +172,17 @@ static inline void lvl_update(){
 			lvl_start();
 		}
 		break;
+	case LVL_STATUS_PAUSE:
+		{
+			uint8_t ind = 0;
+			while(++ind <= 9){
+				if(kpd_is_key_pressed_indexed(ind)){
+					lvl_show_screen(SPLASH);
+					lvl_status = LVL_STATUS_RUN;
+					break;
+				}
+			}
+		} break;
 	default:
 		break;
 	}
