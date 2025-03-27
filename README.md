@@ -1,11 +1,13 @@
-# Systemy wbudowane
+# Integrated systems
 ## Cele przedmiotu:
 - Uzyskanie przez studenta wiedzy z zakresu budowy i zasady działania mikrokontrolerów oraz aktualnymi trendami rozwoju systemów wbudowanych
 - Uzyskanie przez studenta wiedzy z zakresu programowania układów mikrokontrolerów w systemach wbudowanych </br>
 Informatyka Ⅰ stopień 5 semestr </br>
 
-**C**, **AVR8**, **ATMega32**, **SimulIDE** </br></br>
+**C**, **AVR8**, **ATMega32**, **SimulIDE**; **SAM7** <br><br>
 
+
+![Finished](https://img.shields.io/badge/status-Finished%20%F0%9F%94%9A-3CB371?style=for-the-badge&logo=github) <br>
 
 Shields: [![GPL-3.0][gpl3-shield]][gpl3]
 
